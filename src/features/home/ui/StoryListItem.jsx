@@ -1,4 +1,5 @@
 import { Bookmark, CalendarDays, Eye, Share2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { formatArticleDate, formatViews } from "../utils/formatters";
 
 export function StoryListItem({ post }) {
@@ -40,12 +41,12 @@ export function StoryListItem({ post }) {
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                type="button"
+              <Link
+                to={`/blog/${post.slug}`}
                 className="rounded-full px-4 py-2 text-sm font-semibold text-cyan-700 transition hover:bg-cyan-50"
               >
                 Read Story
-              </button>
+              </Link>
               <button
                 type="button"
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-cyan-200 hover:text-cyan-700"

@@ -3,11 +3,27 @@ import { EditorialSection } from "../sections/EditorialSection";
 import { SearchAndFilterSection } from "../sections/SearchAndFilterSection";
 import { useBlogFilters } from "../hooks/useBlogFilters";
 import { useHomeFeedData } from "../hooks/useHomeFeedData";
+import { useHomeTutorial } from "../hooks/useHomeTutorial";
 import { FeedStatusBanner } from "../ui/FeedStatusBanner";
+import { HomeTutorialOverlay } from "../ui/HomeTutorialOverlay";
+import { useDocumentTitle } from "@/shared/hooks/useDocumentTitle";
 
 export function HomePage() {
+  useDocumentTitle("CampyTech Gist | Education News and Opportunities");
   const { posts, categories, loading, error, usingFallbackData } =
     useHomeFeedData();
+  const {
+    showTutorial,
+    tutorialStep,
+    tutorialSteps,
+    setTutorialStep,
+    nextStep,
+    previousStep,
+    completeTutorial,
+    restartTutorial,
+  } = useHomeTutorial({
+    ready: !loading,
+  });
 
   const {
     searchTerm,
@@ -35,6 +51,16 @@ export function HomePage() {
         loading={loading}
         error={error}
         usingFallbackData={usingFallbackData}
+      />
+      <HomeTutorialOverlay
+        showTutorial={showTutorial}
+        tutorialStep={tutorialStep}
+        tutorialSteps={tutorialSteps}
+        onSetStep={setTutorialStep}
+        onNext={nextStep}
+        onPrevious={previousStep}
+        onSkip={completeTutorial}
+        onRestart={restartTutorial}
       />
       <SearchAndFilterSection
         searchTerm={searchTerm}

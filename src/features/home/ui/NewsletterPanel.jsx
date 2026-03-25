@@ -2,7 +2,10 @@ import { BellRing } from "lucide-react";
 
 export function NewsletterPanel() {
   return (
-    <section className="overflow-hidden rounded-[1.75rem] bg-[linear-gradient(160deg,_#0891b2_0%,_#1d4ed8_100%)] p-6 text-white shadow-[0_20px_50px_rgba(8,145,178,0.26)]">
+    <section
+      data-tutorial-id="newsletter"
+      className="overflow-hidden rounded-[1.75rem] bg-[linear-gradient(160deg,_#0891b2_0%,_#1d4ed8_100%)] p-6 text-white shadow-[0_20px_50px_rgba(8,145,178,0.26)]"
+    >
       <div className="text-center">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white/15">
           <BellRing className="h-7 w-7" />

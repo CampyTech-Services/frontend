@@ -5,6 +5,7 @@ import {
   Eye,
   Share2,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { formatArticleDate, formatViews } from "../utils/formatters";
 
 export function FeaturedStoryCard({ post }) {
@@ -13,7 +14,10 @@ export function FeaturedStoryCard({ post }) {
   }
 
   return (
-    <article className="overflow-hidden rounded-[2rem] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/70">
+    <article
+      data-tutorial-id="featured-post"
+      className="overflow-hidden rounded-[2rem] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/70"
+    >
       <div className="relative h-[26rem] overflow-hidden sm:h-[32rem]">
         <img
           src={post.image}
@@ -54,13 +58,13 @@ export function FeaturedStoryCard({ post }) {
           {post.excerpt}
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <button
-            type="button"
+          <Link
+            to={`/blog/${post.slug}`}
             className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-cyan-600"
           >
             <span>Read Full Story</span>
             <ChevronRight className="h-4 w-4" />
-          </button>
+          </Link>
           <div className="flex items-center gap-2">
             <button
               type="button"

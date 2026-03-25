@@ -8,7 +8,10 @@ export function BreakingNewsSection({ posts }) {
   const tickerPosts = [...posts, ...posts];
 
   return (
-    <section className="border-b border-red-700 bg-red-600 text-white">
+    <section
+      data-tutorial-id="breaking-news"
+      className="border-b border-red-700 bg-red-600 text-white"
+    >
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex shrink-0 items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-red-600">
           <BellRing className="h-3.5 w-3.5" />

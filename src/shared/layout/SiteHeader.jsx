@@ -64,6 +64,7 @@ export function SiteHeader() {
             ))}
             <button
               type="button"
+              data-tutorial-id="consultation"
               className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-cyan-600"
             >
               Book Consultation
@@ -100,6 +101,7 @@ export function SiteHeader() {
               ))}
               <button
                 type="button"
+                data-tutorial-id="consultation"
                 className="mt-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white"
               >
                 Book Consultation
