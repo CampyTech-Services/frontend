@@ -10,12 +10,15 @@ import {
   Heading3,
   Image,
   Italic,
+  LoaderCircle,
   Link2,
   List,
   ListOrdered,
   Quote,
   Save,
   Tag,
+  Trash2,
+  Upload,
   X,
 } from "lucide-react";
 import { BlogArticleContent } from "@/features/home/ui/BlogArticleContent";
@@ -203,11 +206,15 @@ export function BlogEditor({
   tags,
   editingBlog,
   loading,
+  uploadingImage,
+  canUploadImages,
   onFieldChange,
+  onImageUpload,
   onSubmit,
   onCancel,
 }) {
   const contentInputRef = useRef(null);
+  const imageInputRef = useRef(null);
   const [mobileContentView, setMobileContentView] = useState("editor");
   const deferredContent = useDeferredValue(blogForm.content);
   const previewBlocks = normalizeContentBlocks(deferredContent);
@@ -307,6 +314,17 @@ export function BlogEditor({
     );
   }
 
+  function handleImageSelection(event) {
+    const selectedFile = event.target.files?.[0];
+
+    if (!selectedFile) {
+      return;
+    }
+
+    onImageUpload(selectedFile);
+    event.target.value = "";
+  }
+
   return (
     <form
       className="grid gap-6 pb-24 xl:grid-cols-[minmax(0,1.45fr)_23rem] xl:gap-8 xl:pb-0"
@@ -338,7 +356,7 @@ export function BlogEditor({
             />
           </label>
 
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6">
             <label className="block">
               <span className="mb-2 block text-sm font-semibold text-slate-700">
                 Slug
@@ -352,23 +370,113 @@ export function BlogEditor({
                 placeholder="blog-url-slug"
               />
             </label>
-
-            <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-slate-700">
-                Featured Image URL
-              </span>
-              <input
-                type="url"
-                required
-                value={blogForm.featuredImage}
-                onChange={(event) =>
-                  onFieldChange("featuredImage", event.target.value)
-                }
-                className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-100 sm:text-sm"
-                placeholder="https://example.com/image.jpg"
-              />
-            </label>
           </div>
+
+          <section className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 sm:p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Image className="h-5 w-5 text-cyan-600" />
+                  <h3 className="text-base font-black text-slate-950">
+                    Featured Image
+                  </h3>
+                </div>
+                <p className="mt-2 text-xs leading-6 text-slate-500">
+                  Upload from a device and let storage return the URL
+                  automatically, or paste a direct image URL yourself.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageSelection}
+                />
+                <button
+                  type="button"
+                  onClick={() => imageInputRef.current?.click()}
+                  disabled={!canUploadImages || uploadingImage}
+                  className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-white px-4 py-2 text-sm font-semibold text-cyan-700 transition hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {uploadingImage ? (
+                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4" />
+                  )}
+                  <span>
+                    {uploadingImage
+                      ? "Uploading..."
+                      : canUploadImages
+                        ? "Upload Image"
+                        : "Upload Disabled"}
+                  </span>
+                </button>
+
+                {blogForm.featuredImage ? (
+                  <button
+                    type="button"
+                    onClick={() => onFieldChange("featuredImage", "")}
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Remove</span>
+                  </button>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+              <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white">
+                {blogForm.featuredImage ? (
+                  <img
+                    src={blogForm.featuredImage}
+                    alt="Featured preview"
+                    className="h-56 w-full object-cover sm:h-64"
+                  />
+                ) : (
+                  <div className="flex h-56 items-center justify-center bg-[linear-gradient(135deg,_#cffafe_0%,_#dbeafe_45%,_#e2e8f0_100%)] px-6 text-center text-sm font-semibold text-slate-500 sm:h-64">
+                    Upload a cover image to make the story stand out across the
+                    homepage and the article page.
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-slate-700">
+                    Image URL
+                  </span>
+                  <input
+                    type="url"
+                    required
+                    value={blogForm.featuredImage}
+                    onChange={(event) =>
+                      onFieldChange("featuredImage", event.target.value)
+                    }
+                    className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-100 sm:text-sm"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </label>
+
+                <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-white px-4 py-4">
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
+                    Upload Notes
+                  </p>
+                  <p className="mt-3 text-sm leading-7 text-slate-600">
+                    {canUploadImages
+                      ? "Direct upload is enabled. Pick a file from your phone or laptop and the returned storage URL will fill this field automatically."
+                      : "Direct upload is not configured yet. Add VITE_IMGBB_API_KEY to enable uploads, or paste an image URL here manually."}
+                  </p>
+                  <p className="mt-2 text-xs leading-6 text-slate-500">
+                    Recommended: JPG, PNG, or WEBP under 5MB.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
 
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-slate-700">
@@ -703,26 +811,6 @@ export function BlogEditor({
                 </label>
               );
             })}
-          </div>
-        </section>
-
-        <section className="rounded-[1.75rem] bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/70 sm:p-6">
-          <div className="flex items-center gap-2">
-            <Image className="h-5 w-5 text-cyan-600" />
-            <h3 className="text-lg font-black text-slate-950">Image Preview</h3>
-          </div>
-          <div className="mt-5 overflow-hidden rounded-[1.5rem] bg-slate-100">
-            {blogForm.featuredImage ? (
-              <img
-                src={blogForm.featuredImage}
-                alt="Featured preview"
-                className="h-56 w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-56 items-center justify-center text-sm font-medium text-slate-400">
-                Add an image URL to preview it here
-              </div>
-            )}
           </div>
         </section>
 

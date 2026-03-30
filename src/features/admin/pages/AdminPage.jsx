@@ -54,10 +54,12 @@ export function AdminPage() {
     loading,
     dashboardLoading,
     bootstrapping,
+    uploadingImage,
     error,
     success,
     stats,
     latestPublishedBlog,
+    canUploadImages,
     setShowPassword,
     setLoginData,
     setBlogForm,
@@ -69,6 +71,7 @@ export function AdminPage() {
     handleLogin,
     handleLogout,
     handleSaveBlog,
+    handleBlogImageUpload,
     handleDeleteBlog,
     handleEditBlog,
     handleSaveCategory,
@@ -184,12 +187,15 @@ export function AdminPage() {
                 tags={tags}
                 editingBlog={editingBlog}
                 loading={loading}
+                uploadingImage={uploadingImage}
+                canUploadImages={canUploadImages}
                 onFieldChange={(field, value) =>
                   setBlogForm((previousState) => ({
                     ...previousState,
                     [field]: value,
                   }))
                 }
+                onImageUpload={handleBlogImageUpload}
                 onSubmit={handleSaveBlog}
                 onCancel={() => {
                   setCurrentView(ADMIN_VIEWS.DASHBOARD);

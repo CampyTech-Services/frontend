@@ -1,3 +1,4 @@
+import axios from "axios";
 import { apiClient } from "@/shared/utils/client";
 import { ADMIN_COLLECTION_LIMIT } from "../constants";
 import { normalizeAdminCollection } from "../utils/adminHelpers";
@@ -125,4 +126,40 @@ export async function deleteAdminTag(token, tagId) {
   );
 
   return response.data;
+}
+
+export function isAdminImageUploadConfigured() {
+  return Boolean(import.meta.env.VITE_IMGBB_API_KEY);
+}
+
+export async function uploadAdminImage(file) {
+  const apiKey = import.meta.env.VITE_IMGBB_API_KEY;
+
+  if (!apiKey) {
+    throw new Error(
+      "Image uploads are not configured. Add VITE_IMGBB_API_KEY to enable direct uploads.",
+    );
+  }
+
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await axios.post(
+    `https://api.imgbb.com/1/upload?key=${apiKey}`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+
+  const imageUrl =
+    response.data?.data?.url || response.data?.data?.display_url || "";
+
+  if (!imageUrl) {
+    throw new Error("Image upload completed, but no public URL was returned.");
+  }
+
+  return imageUrl;
 }

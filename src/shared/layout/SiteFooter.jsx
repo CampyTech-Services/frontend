@@ -1,5 +1,22 @@
-import logo from "@/assets/logo.jpeg";
+import { Link } from "react-router-dom";
+import logo from "@/assets/logo2.jpeg";
 import { footerColumns } from "@/shared/config/siteNavigation";
+
+function FooterLink({ item }) {
+  if (item.to) {
+    return (
+      <Link to={item.to} className="transition hover:text-white">
+        {item.label}
+      </Link>
+    );
+  }
+
+  return (
+    <a href={item.href} className="transition hover:text-white">
+      {item.label}
+    </a>
+  );
+}
 
 export function SiteFooter() {
   return (
@@ -28,10 +45,8 @@ export function SiteFooter() {
               </h2>
               <ul className="mt-4 space-y-3 text-sm text-slate-400">
                 {column.links.map((link) => (
-                  <li key={link}>
-                    <a href="#" className="transition hover:text-white">
-                      {link}
-                    </a>
+                  <li key={link.label}>
+                    <FooterLink item={link} />
                   </li>
                 ))}
               </ul>

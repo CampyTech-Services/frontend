@@ -1,7 +1,7 @@
 import { CalendarDays, Menu, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import logo from "@/assets/logo.jpeg";
+import logo from "@/assets/logo2.jpeg";
 import {
   primaryNavigationItems,
   utilityLinks,
@@ -9,6 +9,22 @@ import {
 
 const navClassName =
   "text-sm font-semibold text-slate-600 transition hover:text-cyan-700";
+
+function HeaderNavigationLink({ item, className, onClick }) {
+  if (item.to) {
+    return (
+      <Link to={item.to} className={className} onClick={onClick}>
+        {item.label}
+      </Link>
+    );
+  }
+
+  return (
+    <a href={item.href} className={className} onClick={onClick}>
+      {item.label}
+    </a>
+  );
+}
 
 export function SiteHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -58,17 +74,19 @@ export function SiteHeader() {
 
           <nav className="hidden items-center gap-8 lg:flex">
             {primaryNavigationItems.map((item) => (
-              <a key={item.label} href={item.href} className={navClassName}>
-                {item.label}
-              </a>
+              <HeaderNavigationLink
+                key={item.label}
+                item={item}
+                className={navClassName}
+              />
             ))}
-            <button
-              type="button"
+            <a
+              href="/services#consultation-desk"
               data-tutorial-id="consultation"
               className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-cyan-600"
             >
               Book Consultation
-            </button>
+            </a>
           </nav>
 
           <button
@@ -90,22 +108,21 @@ export function SiteHeader() {
           <div className="border-t border-slate-200 bg-white px-4 py-4 lg:hidden">
             <nav className="flex flex-col gap-3">
               {primaryNavigationItems.map((item) => (
-                <a
+                <HeaderNavigationLink
                   key={item.label}
-                  href={item.href}
+                  item={item}
                   className={navClassName}
                   onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.label}
-                </a>
+                />
               ))}
-              <button
-                type="button"
+              <a
+                href="/services#consultation-desk"
                 data-tutorial-id="consultation"
-                className="mt-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white"
+                className="mt-2 rounded-xl bg-slate-950 px-5 py-3 text-center text-sm font-semibold text-white"
+                onClick={() => setIsMenuOpen(false)}
               >
                 Book Consultation
-              </button>
+              </a>
             </nav>
           </div>
         )}

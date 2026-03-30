@@ -15,10 +15,12 @@ import {
   getAdminBlogs,
   getAdminCategories,
   getAdminTags,
+  isAdminImageUploadConfigured,
   loginAdmin,
   saveAdminBlog,
   saveAdminCategory,
   saveAdminTag,
+  uploadAdminImage,
 } from "../services/adminApi";
 import {
   buildBlogPayload,
@@ -61,8 +63,10 @@ export function useAdminPanel() {
   const [loading, setLoading] = useState(false);
   const [dashboardLoading, setDashboardLoading] = useState(false);
   const [bootstrapping, setBootstrapping] = useState(true);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const canUploadImages = isAdminImageUploadConfigured();
 
   useEffect(() => {
     const storedToken = window.localStorage.getItem(ADMIN_TOKEN_KEY);
@@ -228,6 +232,40 @@ export function useAdminPanel() {
       setError(getErrorMessage(saveError, "Failed to save blog."));
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleBlogImageUpload(file) {
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image file.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Please choose an image smaller than 5MB.");
+      return;
+    }
+
+    setUploadingImage(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const imageUrl = await uploadAdminImage(file);
+
+      setBlogForm((previousForm) => ({
+        ...previousForm,
+        featuredImage: imageUrl,
+      }));
+      setSuccess("Image uploaded successfully.");
+    } catch (uploadError) {
+      setError(getErrorMessage(uploadError, "Failed to upload image."));
+    } finally {
+      setUploadingImage(false);
     }
   }
 
@@ -460,10 +498,12 @@ export function useAdminPanel() {
     loading,
     dashboardLoading,
     bootstrapping,
+    uploadingImage,
     error,
     success,
     stats,
     latestPublishedBlog,
+    canUploadImages,
     setCurrentView,
     setShowPassword,
     setLoginData,
@@ -475,6 +515,7 @@ export function useAdminPanel() {
     handleLogin,
     handleLogout,
     handleSaveBlog,
+    handleBlogImageUpload,
     handleDeleteBlog,
     handleEditBlog,
     handleSaveCategory,

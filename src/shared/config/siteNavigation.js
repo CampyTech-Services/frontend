@@ -5,24 +5,40 @@ export const utilityLinks = [
 ];
 
 export const primaryNavigationItems = [
-  { label: "Home", href: "#top" },
-  { label: "News", href: "#latest-stories" },
-  { label: "Admission", href: "#browse-categories" },
-  { label: "Scholarships", href: "#browse-categories" },
-  { label: "JAMB", href: "#browse-categories" },
+  { label: "Home", to: "/" },
+  { label: "News", href: "/#latest-stories" },
+  { label: "Admission", href: "/#browse-categories" },
+  { label: "Scholarships", href: "/#browse-categories" },
+  { label: "JAMB", href: "/#browse-categories" },
+  { label: "Services", to: "/services" },
 ];
 
 export const footerColumns = [
   {
     title: "Quick Links",
-    links: ["Home", "Latest News", "Admission Guide", "Scholarships"],
+    links: [
+      { label: "Home", to: "/" },
+      { label: "Latest News", href: "/#latest-stories" },
+      { label: "Admission Guide", href: "/#browse-categories" },
+      { label: "Services", to: "/services" },
+    ],
   },
   {
     title: "Categories",
-    links: ["Universities", "Polytechnics", "JAMB Updates", "WAEC News"],
+    links: [
+      { label: "Universities", href: "/#browse-categories" },
+      { label: "Polytechnics", href: "/#browse-categories" },
+      { label: "JAMB Updates", href: "/#browse-categories" },
+      { label: "WAEC News", href: "/#browse-categories" },
+    ],
   },
   {
     title: "Legal",
-    links: ["About Us", "Contact Us", "Privacy Policy", "Terms of Service"],
+    links: [
+      { label: "About Us", href: "#footer" },
+      { label: "Contact Us", href: "#footer" },
+      { label: "Privacy Policy", href: "#footer" },
+      { label: "Terms of Service", href: "#footer" },
+    ],
   },
 ];
