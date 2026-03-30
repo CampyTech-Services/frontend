@@ -271,12 +271,26 @@ Current vars:
 - `VITE_PUBLIC_BLOG_ENDPOINT`
   Optional explicit public blog endpoint for homepage data
 
+- `VITE_ADMIN_ALLOWED_IPS`
+  Optional comma-separated list for a frontend `/admin` IP gate
+
+- `VITE_ADMIN_IP_LOOKUP_URL`
+  Optional override for the public IP lookup endpoint used by the frontend gate
+
 Example:
 
 ```env
 VITE_BACKEND_URL=http://localhost:3000
 VITE_PUBLIC_BLOG_ENDPOINT=/api/blog/published
+# Optional frontend-only /admin IP gate
+# VITE_ADMIN_ALLOWED_IPS=127.0.0.1,197.210.*,105.112.44.10
+# VITE_ADMIN_IP_LOOKUP_URL=https://api.ipify.org?format=json
 ```
+
+Important:
+
+- the `/admin` IP gate added in the frontend is only a browser-side visibility layer
+- real security should still be enforced on backend admin APIs and/or at the reverse proxy level
 
 ## Local Development
 

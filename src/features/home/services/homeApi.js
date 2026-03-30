@@ -9,9 +9,6 @@ import {
 const listEndpointCandidates = [
   import.meta.env.VITE_PUBLIC_BLOG_ENDPOINT,
   "/api/blog/published",
-  "/api/blog",
-  "/api/blog/all",
-  "/api/blogs",
 ].filter(Boolean);
 
 function resolveDetailEndpoint(template, slug) {
@@ -48,7 +45,9 @@ export async function getHomepageBlogs() {
     }
   }
 
-  throw lastError ?? new Error("Unable to load homepage blogs from the backend.");
+  throw (
+    lastError ?? new Error("Unable to load homepage blogs from the backend.")
+  );
 }
 
 export async function getBlogPostBySlug(slug) {
@@ -69,6 +68,7 @@ export async function getBlogPostBySlug(slug) {
       const { found, item } = extractSingleFromResponse(response.data);
 
       if (!found || !item) {
+        console.log('Hmmm.. here?');
         continue;
       }
 

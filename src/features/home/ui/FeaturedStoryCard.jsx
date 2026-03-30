@@ -60,7 +60,7 @@ export function FeaturedStoryCard({ post }) {
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <Link
             to={`/blog/${post.slug}`}
-            className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-cyan-600"
+            className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-5 py-3 text-sm font-semibold text-cyan-800 transition hover:border-cyan-300 hover:bg-cyan-100"
           >
             <span>Read Full Story</span>
             <ChevronRight className="h-4 w-4" />

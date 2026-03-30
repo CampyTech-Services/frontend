@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "@/App";
 import { AdminPage } from "@/features/admin";
-import { BlogDetailPage, HomePage } from "@/features/home";
+import { BlogDetailPage, HomePage, NotFoundPage } from "@/features/home";
 
 export const router = createBrowserRouter([
   {
@@ -15,6 +15,10 @@ export const router = createBrowserRouter([
       {
         path: "blog/:slug",
         element: <BlogDetailPage />,
+      },
+      {
+        path: "*",
+        element: <NotFoundPage />,
       },
     ],
   },

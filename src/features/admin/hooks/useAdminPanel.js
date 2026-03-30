@@ -2,21 +2,33 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import {
   ADMIN_TOKEN_KEY,
+  ADMIN_VIEWS,
   EMPTY_BLOG_FORM,
+  EMPTY_CATEGORY_FORM,
   EMPTY_LOGIN_FORM,
+  EMPTY_TAG_FORM,
 } from "../constants";
 import {
   deleteAdminBlog,
+  deleteAdminCategory,
+  deleteAdminTag,
   getAdminBlogs,
   getAdminCategories,
   getAdminTags,
   loginAdmin,
   saveAdminBlog,
+  saveAdminCategory,
+  saveAdminTag,
 } from "../services/adminApi";
 import {
   buildBlogPayload,
+  buildCategoryPayload,
   buildSlug,
+  buildTagPayload,
+  createEmptyCollectionState,
   formatEditorContent,
+  getBlogTagIds,
+  sortByLatest,
 } from "../utils/adminHelpers";
 
 function getErrorMessage(error, fallbackMessage) {
@@ -34,14 +46,18 @@ function getErrorMessage(error, fallbackMessage) {
 export function useAdminPanel() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authToken, setAuthToken] = useState(null);
-  const [currentView, setCurrentView] = useState("login");
+  const [currentView, setCurrentView] = useState(ADMIN_VIEWS.LOGIN);
   const [showPassword, setShowPassword] = useState(false);
   const [loginData, setLoginData] = useState(EMPTY_LOGIN_FORM);
   const [blogForm, setBlogForm] = useState(EMPTY_BLOG_FORM);
-  const [blogs, setBlogs] = useState([]);
-  const [categories, setCategories] = useState({});
-  const [tags, setTags] = useState({});
+  const [categoryForm, setCategoryForm] = useState(EMPTY_CATEGORY_FORM);
+  const [tagForm, setTagForm] = useState(EMPTY_TAG_FORM);
+  const [blogs, setBlogs] = useState(createEmptyCollectionState);
+  const [categories, setCategories] = useState(createEmptyCollectionState);
+  const [tags, setTags] = useState(createEmptyCollectionState);
   const [editingBlog, setEditingBlog] = useState(null);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [editingTag, setEditingTag] = useState(null);
   const [loading, setLoading] = useState(false);
   const [dashboardLoading, setDashboardLoading] = useState(false);
   const [bootstrapping, setBootstrapping] = useState(true);
@@ -59,7 +75,7 @@ export function useAdminPanel() {
     const restoreSession = async () => {
       setAuthToken(storedToken);
       setIsLoggedIn(true);
-      setCurrentView("dashboard");
+      setCurrentView(ADMIN_VIEWS.DASHBOARD);
 
       try {
         await loadDashboardData(storedToken);
@@ -67,7 +83,7 @@ export function useAdminPanel() {
         window.localStorage.removeItem(ADMIN_TOKEN_KEY);
         setAuthToken(null);
         setIsLoggedIn(false);
-        setCurrentView("login");
+        setCurrentView(ADMIN_VIEWS.LOGIN);
         setError(
           getErrorMessage(
             restoreError,
@@ -92,6 +108,28 @@ export function useAdminPanel() {
       slug: buildSlug(previousForm.title),
     }));
   }, [blogForm.title, editingBlog]);
+
+  useEffect(() => {
+    if (!categoryForm.name || editingCategory) {
+      return;
+    }
+
+    setCategoryForm((previousForm) => ({
+      ...previousForm,
+      slug: buildSlug(previousForm.name),
+    }));
+  }, [categoryForm.name, editingCategory]);
+
+  useEffect(() => {
+    if (!tagForm.name || editingTag) {
+      return;
+    }
+
+    setTagForm((previousForm) => ({
+      ...previousForm,
+      slug: buildSlug(previousForm.name),
+    }));
+  }, [tagForm.name, editingTag]);
 
   async function loadDashboardData(tokenOverride = authToken) {
     if (!tokenOverride) {
@@ -132,7 +170,7 @@ export function useAdminPanel() {
       window.localStorage.setItem(ADMIN_TOKEN_KEY, accessToken);
       setAuthToken(accessToken);
       setIsLoggedIn(true);
-      setCurrentView("dashboard");
+      setCurrentView(ADMIN_VIEWS.DASHBOARD);
       setLoginData(EMPTY_LOGIN_FORM);
       setSuccess("Login successful.");
       await loadDashboardData(accessToken);
@@ -153,13 +191,17 @@ export function useAdminPanel() {
     window.localStorage.removeItem(ADMIN_TOKEN_KEY);
     setAuthToken(null);
     setIsLoggedIn(false);
-    setCurrentView("login");
+    setCurrentView(ADMIN_VIEWS.LOGIN);
     setLoginData(EMPTY_LOGIN_FORM);
     setBlogForm(EMPTY_BLOG_FORM);
-    setBlogs([]);
-    setCategories({ total: 0, items: [] });
-    setTags([]);
+    setCategoryForm(EMPTY_CATEGORY_FORM);
+    setTagForm(EMPTY_TAG_FORM);
+    setBlogs(createEmptyCollectionState());
+    setCategories(createEmptyCollectionState());
+    setTags(createEmptyCollectionState());
     setEditingBlog(null);
+    setEditingCategory(null);
+    setEditingTag(null);
     setError("");
     setSuccess("");
   }
@@ -180,7 +222,7 @@ export function useAdminPanel() {
           : "Blog created successfully.",
       );
       resetForm();
-      setCurrentView("dashboard");
+      setCurrentView(ADMIN_VIEWS.DASHBOARD);
       await loadDashboardData();
     } catch (saveError) {
       setError(getErrorMessage(saveError, "Failed to save blog."));
@@ -216,9 +258,9 @@ export function useAdminPanel() {
       excerpt: blog.excerpt || "",
       categoryId: blog.categoryId ? String(blog.categoryId) : "",
       status: blog.status || "DRAFT",
-      tags: blog.tags?.map((tag) => String(tag.id)) || [],
+      tags: getBlogTagIds(blog),
     });
-    setCurrentView("editor");
+    setCurrentView(ADMIN_VIEWS.EDITOR);
     setError("");
     setSuccess("");
   }
@@ -230,38 +272,173 @@ export function useAdminPanel() {
 
   function openCreateView() {
     resetForm();
-    setCurrentView("editor");
+    setCurrentView(ADMIN_VIEWS.EDITOR);
   }
+
+  async function handleSaveCategory(event) {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const payload = buildCategoryPayload(categoryForm);
+      await saveAdminCategory(authToken, payload, editingCategory?.id);
+      setSuccess(
+        editingCategory
+          ? "Category updated successfully."
+          : "Category created successfully.",
+      );
+      resetCategoryForm();
+      setCurrentView(ADMIN_VIEWS.CATEGORIES);
+      await loadDashboardData();
+    } catch (saveError) {
+      setError(getErrorMessage(saveError, "Failed to save category."));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDeleteCategory(categoryId) {
+    if (!window.confirm("Are you sure you want to delete this category?")) {
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+
+    try {
+      await deleteAdminCategory(authToken, categoryId);
+
+      if (editingCategory?.id === categoryId) {
+        resetCategoryForm();
+      }
+
+      setSuccess("Category deleted successfully.");
+      await loadDashboardData();
+    } catch (deleteError) {
+      setError(getErrorMessage(deleteError, "Failed to delete category."));
+    }
+  }
+
+  function handleEditCategory(category) {
+    setEditingCategory(category);
+    setCategoryForm({
+      name: category.name || "",
+      slug: category.slug || "",
+      description: category.description || "",
+    });
+    setCurrentView(ADMIN_VIEWS.CATEGORIES);
+    setError("");
+    setSuccess("");
+  }
+
+  function resetCategoryForm() {
+    setCategoryForm(EMPTY_CATEGORY_FORM);
+    setEditingCategory(null);
+  }
+
+  async function handleSaveTag(event) {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const payload = buildTagPayload(tagForm);
+      await saveAdminTag(authToken, payload, editingTag?.id);
+      setSuccess(
+        editingTag ? "Tag updated successfully." : "Tag created successfully.",
+      );
+      resetTagForm();
+      setCurrentView(ADMIN_VIEWS.TAGS);
+      await loadDashboardData();
+    } catch (saveError) {
+      setError(getErrorMessage(saveError, "Failed to save tag."));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDeleteTag(tagId) {
+    if (!window.confirm("Are you sure you want to delete this tag?")) {
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+
+    try {
+      await deleteAdminTag(authToken, tagId);
+
+      if (editingTag?.id === tagId) {
+        resetTagForm();
+      }
+
+      setSuccess("Tag deleted successfully.");
+      await loadDashboardData();
+    } catch (deleteError) {
+      setError(getErrorMessage(deleteError, "Failed to delete tag."));
+    }
+  }
+
+  function handleEditTag(tag) {
+    setEditingTag(tag);
+    setTagForm({
+      name: tag.name || "",
+      slug: tag.slug || "",
+    });
+    setCurrentView(ADMIN_VIEWS.TAGS);
+    setError("");
+    setSuccess("");
+  }
+
+  function resetTagForm() {
+    setTagForm(EMPTY_TAG_FORM);
+    setEditingTag(null);
+  }
+
+  const blogItems = useMemo(() => sortByLatest(blogs.items), [blogs.items]);
+  const latestPublishedBlog = useMemo(
+    () =>
+      blogItems.find((blog) => blog.status === "PUBLISHED") || null,
+    [blogItems],
+  );
 
   const stats = useMemo(
     () => [
       {
         id: "total",
         label: "Total Blogs",
-        value: blogs.total,
+        value: blogs.total || blogItems.length,
         tone: "cyan",
       },
       {
         id: "published",
         label: "Published",
-        value: blogs.items?.filter((blog) => blog.status === "PUBLISHED")
-          ?.length,
+        value: blogItems.filter((blog) => blog.status === "PUBLISHED").length,
         tone: "green",
       },
       {
         id: "drafts",
         label: "Drafts",
-        value: blogs.items?.filter((blog) => blog.status === "DRAFT")?.length,
+        value: blogItems.filter((blog) => blog.status === "DRAFT").length,
         tone: "amber",
       },
       {
         id: "categories",
         label: "Categories",
-        value: categories.total || categories.length,
+        value: categories.total || categories.items.length,
         tone: "slate",
       },
+      {
+        id: "tags",
+        label: "Tags",
+        value: tags.total || tags.items.length,
+        tone: "violet",
+      },
     ],
-    [blogs, categories],
+    [blogItems, blogs.total, categories.total, categories.items.length, tags],
   );
 
   return {
@@ -271,20 +448,28 @@ export function useAdminPanel() {
     showPassword,
     loginData,
     blogForm,
+    categoryForm,
+    tagForm,
     blogs,
+    blogItems,
     categories,
     tags,
     editingBlog,
+    editingCategory,
+    editingTag,
     loading,
     dashboardLoading,
     bootstrapping,
     error,
     success,
     stats,
+    latestPublishedBlog,
     setCurrentView,
     setShowPassword,
     setLoginData,
     setBlogForm,
+    setCategoryForm,
+    setTagForm,
     setError,
     setSuccess,
     handleLogin,
@@ -292,8 +477,16 @@ export function useAdminPanel() {
     handleSaveBlog,
     handleDeleteBlog,
     handleEditBlog,
+    handleSaveCategory,
+    handleDeleteCategory,
+    handleEditCategory,
+    handleSaveTag,
+    handleDeleteTag,
+    handleEditTag,
     openCreateView,
     resetForm,
+    resetCategoryForm,
+    resetTagForm,
     refreshDashboard: loadDashboardData,
   };
 }

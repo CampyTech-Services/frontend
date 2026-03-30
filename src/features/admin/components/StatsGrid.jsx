@@ -3,6 +3,7 @@ import {
   Clock3,
   FileText,
   FolderOpen,
+  Tag,
 } from "lucide-react";
 
 const iconByStat = {
@@ -10,6 +11,7 @@ const iconByStat = {
   published: CheckCircle2,
   drafts: Clock3,
   categories: FolderOpen,
+  tags: Tag,
 };
 
 const toneByStat = {
@@ -17,11 +19,12 @@ const toneByStat = {
   green: "bg-emerald-50 text-emerald-700",
   amber: "bg-amber-50 text-amber-700",
   slate: "bg-slate-100 text-slate-700",
+  violet: "bg-violet-50 text-violet-700",
 };
 
 export function StatsGrid({ stats }) {
   return (
-    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
       {stats.map((stat) => {
         const Icon = iconByStat[stat.id];
         const tone = toneByStat[stat.tone];

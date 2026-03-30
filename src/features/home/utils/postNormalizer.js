@@ -1,4 +1,8 @@
 import { blogPosts as fallbackPosts } from "../data/blogPosts";
+import {
+  extractContentText,
+  normalizeContentBlocks,
+} from "@/shared/utils/blogContent";
 
 function buildSlug(value) {
   return value
@@ -54,152 +58,6 @@ function extractSingle(data) {
   }
 
   return { found: false, item: null };
-}
-
-function stripHtml(value) {
-  return value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-}
-
-function parseContentString(content) {
-  const trimmedContent = content.trim();
-
-  if (!trimmedContent) {
-    return null;
-  }
-
-  if (
-    (trimmedContent.startsWith("{") && trimmedContent.endsWith("}")) ||
-    (trimmedContent.startsWith("[") && trimmedContent.endsWith("]"))
-  ) {
-    try {
-      return JSON.parse(trimmedContent);
-    } catch {
-      return null;
-    }
-  }
-
-  return null;
-}
-
-function createParagraphBlocksFromText(text) {
-  return text
-    .split(/\n{2,}/)
-    .map((paragraph) => stripHtml(paragraph))
-    .filter(Boolean)
-    .map((paragraph, index) => ({
-      id: `paragraph-${index}`,
-      type: "paragraph",
-      text: paragraph,
-    }));
-}
-
-function normalizeContentBlocks(content, fallbackText = "") {
-  if (!content) {
-    return createParagraphBlocksFromText(fallbackText);
-  }
-
-  if (typeof content === "string") {
-    const parsedContent = parseContentString(content);
-
-    if (parsedContent) {
-      return normalizeContentBlocks(parsedContent, fallbackText);
-    }
-
-    return createParagraphBlocksFromText(content || fallbackText);
-  }
-
-  if (Array.isArray(content)) {
-    return content.flatMap((block, index) =>
-      normalizeContentBlocks({ blocks: [block] }, `${fallbackText}-${index}`),
-    );
-  }
-
-  if (Array.isArray(content?.blocks)) {
-    return content.blocks
-      .map((block, index) => {
-        const blockType = block?.type || "paragraph";
-        const blockData = block?.data || block || {};
-
-        if (blockType === "header") {
-          return {
-            id: block?.id || `header-${index}`,
-            type: "header",
-            level: blockData.level || 2,
-            text: stripHtml(blockData.text || ""),
-          };
-        }
-
-        if (blockType === "list") {
-          return {
-            id: block?.id || `list-${index}`,
-            type: "list",
-            style: blockData.style || "unordered",
-            items: (blockData.items || [])
-              .map((item) => stripHtml(typeof item === "string" ? item : ""))
-              .filter(Boolean),
-          };
-        }
-
-        if (blockType === "quote") {
-          return {
-            id: block?.id || `quote-${index}`,
-            type: "quote",
-            text: stripHtml(blockData.text || ""),
-            caption: stripHtml(blockData.caption || ""),
-          };
-        }
-
-        return {
-          id: block?.id || `paragraph-${index}`,
-          type: "paragraph",
-          text: stripHtml(blockData.text || block.text || ""),
-        };
-      })
-      .filter((block) => {
-        if (block.type === "list") {
-          return block.items.length > 0;
-        }
-
-        return Boolean(block.text);
-      });
-  }
-
-  return createParagraphBlocksFromText(fallbackText);
-}
-
-function blocksToText(blocks) {
-  return blocks
-    .flatMap((block) => {
-      if (block.type === "list") {
-        return block.items;
-      }
-
-      return [block.text];
-    })
-    .filter(Boolean)
-    .join(" ");
-}
-
-function extractContentText(content, fallbackText = "") {
-  if (!content) {
-    return stripHtml(fallbackText);
-  }
-
-  if (typeof content === "string") {
-    const parsedContent = parseContentString(content);
-
-    if (parsedContent) {
-      return extractContentText(parsedContent, fallbackText);
-    }
-
-    return stripHtml(content);
-  }
-
-  if (Array.isArray(content?.blocks)) {
-    return blocksToText(normalizeContentBlocks(content, fallbackText));
-  }
-
-  return stripHtml(fallbackText);
 }
 
 function formatExcerpt(post, contentText) {
@@ -263,6 +121,7 @@ function getCategoryId(post) {
 function getAuthorName(post) {
   return (
     post.author?.name ||
+    post.author?.displayName ||
     post.authorName ||
     post.user?.fullName ||
     post.user?.name ||
@@ -287,7 +146,7 @@ function normalizePost(post, index) {
   const contentText = extractContentText(post.content, rawExcerpt);
   const categoryLabel = getCategoryName(post);
 
-  return {
+  const data = {
     id: post.id || `${buildSlug(post.title || `story-${index}`)}-${index}`,
     slug: post.slug || buildSlug(post.title || `story-${index}`),
     title: post.title || "Untitled story",
@@ -304,6 +163,8 @@ function normalizePost(post, index) {
     contentBlocks,
     contentText,
   };
+
+  return data;
 }
 
 export function normalizeHomePosts(posts) {
@@ -312,13 +173,17 @@ export function normalizeHomePosts(posts) {
   );
 
   const sortedPosts = [...publishedPosts].sort((left, right) => {
-    const leftDate = new Date(left.publishedAt || left.createdAt || 0).getTime();
+    const leftDate = new Date(
+      left.publishedAt || left.createdAt || 0,
+    ).getTime();
     const rightDate = new Date(
       right.publishedAt || right.createdAt || 0,
     ).getTime();
 
     return rightDate - leftDate;
   });
+
+  console.log(sortedPosts);
 
   return sortedPosts.map((post, index) => normalizePost(post, index));
 }

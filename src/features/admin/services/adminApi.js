@@ -1,26 +1,20 @@
 import { apiClient } from "@/shared/utils/client";
+import { ADMIN_COLLECTION_LIMIT } from "../constants";
+import { normalizeAdminCollection } from "../utils/adminHelpers";
 
-function withToken(token) {
+const defaultCollectionParams = {
+  page: 1,
+  limit: ADMIN_COLLECTION_LIMIT,
+};
+
+function withToken(token, config = {}) {
   return {
+    ...config,
     headers: {
+      ...(config.headers || {}),
       Authorization: `Bearer ${token}`,
     },
   };
-}
-
-function getCollection(data) {
-  if (Array.isArray(data)) {
-    return data;
-  }
-
-  if (Array.isArray(data?.data)) {
-    return data.data;
-  }
-  if (Object.keys(data)?.length >= 1) {
-    return data;
-  }
-
-  return [];
 }
 
 export async function loginAdmin(credentials) {
@@ -29,19 +23,27 @@ export async function loginAdmin(credentials) {
 }
 
 export async function getAdminBlogs(token) {
-  const response = await apiClient.get("/admin/blog/all", withToken(token));
-  return getCollection(response.data);
+  const response = await apiClient.get(
+    "/admin/blog/all",
+    withToken(token, { params: defaultCollectionParams }),
+  );
+  return normalizeAdminCollection(response.data);
 }
 
 export async function getAdminCategories(token) {
-  const response = await apiClient.get("/admin/category/all", withToken(token));
-  console.log("category data ===> ", response.data);
-  return getCollection(response.data);
+  const response = await apiClient.get(
+    "/admin/category/all",
+    withToken(token, { params: defaultCollectionParams }),
+  );
+  return normalizeAdminCollection(response.data);
 }
 
 export async function getAdminTags(token) {
-  const response = await apiClient.get("/admin/tag/all", withToken(token));
-  return getCollection(response.data);
+  const response = await apiClient.get(
+    "/admin/tag/all",
+    withToken(token, { params: defaultCollectionParams }),
+  );
+  return normalizeAdminCollection(response.data);
 }
 
 export async function saveAdminBlog(token, payload, blogId) {
@@ -66,6 +68,59 @@ export async function saveAdminBlog(token, payload, blogId) {
 export async function deleteAdminBlog(token, blogId) {
   const response = await apiClient.delete(
     `/admin/blog/${blogId}`,
+    withToken(token),
+  );
+
+  return response.data;
+}
+
+export async function saveAdminCategory(token, payload, categoryId) {
+  if (categoryId) {
+    const response = await apiClient.put(
+      `/admin/category/${categoryId}`,
+      payload,
+      withToken(token),
+    );
+
+    return response.data;
+  }
+
+  const response = await apiClient.post(
+    "/admin/category",
+    payload,
+    withToken(token),
+  );
+
+  return response.data;
+}
+
+export async function deleteAdminCategory(token, categoryId) {
+  const response = await apiClient.delete(
+    `/admin/category/${categoryId}`,
+    withToken(token),
+  );
+
+  return response.data;
+}
+
+export async function saveAdminTag(token, payload, tagId) {
+  if (tagId) {
+    const response = await apiClient.put(
+      `/admin/tag/${tagId}`,
+      payload,
+      withToken(token),
+    );
+
+    return response.data;
+  }
+
+  const response = await apiClient.post("/admin/tag", payload, withToken(token));
+  return response.data;
+}
+
+export async function deleteAdminTag(token, tagId) {
+  const response = await apiClient.delete(
+    `/admin/tag/${tagId}`,
     withToken(token),
   );
 

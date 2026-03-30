@@ -88,7 +88,10 @@ export function BlogDetailPage() {
           {usingFallbackData && (
             <div className="inline-flex w-fit items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800">
               <TriangleAlert className="h-4 w-4" />
-              <span>Showing fallback story data while the live endpoint is unavailable.</span>
+              <span>
+                Showing fallback story data while the live endpoint is
+                unavailable.
+              </span>
             </div>
           )}
         </div>
@@ -191,7 +194,7 @@ export function BlogDetailPage() {
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
                   to="/"
-                  className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-cyan-600"
+                  className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-5 py-3 text-sm font-semibold text-cyan-800 transition hover:border-cyan-300 hover:bg-cyan-100"
                 >
                   <span>Explore more stories</span>
                   <ChevronRight className="h-4 w-4" />
@@ -213,13 +216,17 @@ export function BlogDetailPage() {
               </p>
               <dl className="mt-5 space-y-4">
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-sm font-medium text-slate-500">Category</dt>
+                  <dt className="text-sm font-medium text-slate-500">
+                    Category
+                  </dt>
                   <dd className="text-sm font-semibold text-slate-950">
                     {post.categoryLabel || post.category}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-sm font-medium text-slate-500">Published</dt>
+                  <dt className="text-sm font-medium text-slate-500">
+                    Published
+                  </dt>
                   <dd className="text-sm font-semibold text-slate-950">
                     {formatArticleDate(post.publishedAt)}
                   </dd>
@@ -231,7 +238,9 @@ export function BlogDetailPage() {
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-sm font-medium text-slate-500">Reading time</dt>
+                  <dt className="text-sm font-medium text-slate-500">
+                    Reading time
+                  </dt>
                   <dd className="text-sm font-semibold text-slate-950">
                     {post.readTimeMinutes} min
                   </dd>
