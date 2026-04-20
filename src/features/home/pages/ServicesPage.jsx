@@ -45,6 +45,15 @@ const deliverySteps = [
   },
 ];
 
+const darkCtaClassName =
+  "inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white visited:text-white transition hover:bg-cyan-600 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:text-white";
+
+const lightCtaClassName =
+  "inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 visited:text-slate-950 transition hover:bg-cyan-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 active:text-slate-950";
+
+const ghostCtaClassName =
+  "inline-flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300";
+
 function ServiceCard({ service }) {
   const Icon = serviceIcons[service.icon] || Sparkles;
 
@@ -110,14 +119,14 @@ function ServiceCard({ service }) {
         <div className="mt-6 flex flex-wrap gap-3">
           <a
             href="#consultation-desk"
-            className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-cyan-600"
+            className={darkCtaClassName}
           >
             <span>Book This Service</span>
             <ArrowRight className="h-4 w-4" />
           </a>
           <Link
             to="/#latest-stories"
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className={`${ghostCtaClassName} border-slate-200 text-slate-700 visited:text-slate-700 hover:bg-slate-50 hover:text-slate-950 active:text-slate-950`}
           >
             <span>Read Related Updates</span>
             <ChevronRight className="h-4 w-4" />
@@ -163,14 +172,14 @@ export function ServicesPage() {
               <div className="mt-8 flex flex-wrap gap-3">
                 <a
                   href="#services-catalog"
-                  className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-100"
+                  className={`${lightCtaClassName} px-6`}
                 >
                   <span>Explore Services</span>
                   <ArrowRight className="h-4 w-4" />
                 </a>
                 <a
                   href="#consultation-desk"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/15"
+                  className={`${ghostCtaClassName} border-white/20 bg-white/10 px-6 text-white visited:text-white hover:bg-white/15 hover:text-white active:text-white`}
                 >
                   <span>Book Consultation</span>
                   <ChevronRight className="h-4 w-4" />
@@ -322,14 +331,14 @@ export function ServicesPage() {
             <div className="mt-6 flex flex-wrap gap-3">
               <a
                 href="mailto:hello@campytechgist.com"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-100"
+                className={lightCtaClassName}
               >
                 <span>Send an Inquiry</span>
                 <ArrowRight className="h-4 w-4" />
               </a>
               <Link
                 to="/"
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/15"
+                className={`${ghostCtaClassName} border-white/20 bg-white/10 text-white visited:text-white hover:bg-white/15 hover:text-white active:text-white`}
               >
                 <span>Back to Newsroom</span>
                 <ChevronRight className="h-4 w-4" />

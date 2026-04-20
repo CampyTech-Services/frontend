@@ -11,9 +11,7 @@ export function EditorialSection({
   posts,
   trendingPosts,
   categories,
-  activeCategory,
   onCategoryChange,
-  onResetFilters,
 }) {
   const sidebarCategories = categories.filter((category) => category.id !== "all");
   const hasStories = Boolean(featuredPost || posts.length);
@@ -31,9 +29,9 @@ export function EditorialSection({
             </h1>
           </div>
           <p className="max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-            The page is now structured for scale: content data, filters,
-            editorial cards, and layout chrome are all isolated so new routes
-            and live APIs can slot in cleanly.
+            Browse the full newsroom here, then use the search modal above any
+            time you want a faster path to a specific story or filtered result
+            set.
           </p>
         </div>
 
@@ -43,15 +41,17 @@ export function EditorialSection({
               <>
                 <FeaturedStoryCard post={featuredPost} />
                 <div className="mt-8 space-y-6">
-                  {posts.map((post) => (
-                    <StoryListItem key={post.id} post={post} />
+                  {posts.map((post, index) => (
+                    <StoryListItem key={post.id} post={post} index={index} />
                   ))}
                 </div>
               </>
             ) : (
               <EmptyStatePanel
-                activeCategory={activeCategory}
-                onResetFilters={onResetFilters}
+                activeCategory={{ name: "the newsroom" }}
+                searchTerm=""
+                activeFilters={[]}
+                onResetFilters={() => {}}
               />
             )}
           </div>

@@ -1,10 +1,14 @@
 import { Bookmark, CalendarDays, Eye, Share2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { HighlightedText } from "./HighlightedText";
 import { formatArticleDate, formatViews } from "../utils/formatters";
 
-export function StoryListItem({ post }) {
+export function StoryListItem({ post, highlightQuery, index = 0 }) {
   return (
-    <article className="group overflow-hidden rounded-[1.75rem] bg-white shadow-[0_18px_40px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-[0_24px_60px_rgba(14,116,144,0.12)]">
+    <article
+      className="group animate-fade-up overflow-hidden rounded-[1.75rem] bg-white shadow-[0_18px_40px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-[0_24px_60px_rgba(14,116,144,0.12)]"
+      style={{ animationDelay: `${Math.min(index, 8) * 90}ms` }}
+    >
       <div className="md:flex">
         <div className="relative h-56 overflow-hidden md:h-auto md:w-72 lg:w-80">
           <img
@@ -21,10 +25,10 @@ export function StoryListItem({ post }) {
         <div className="flex flex-1 flex-col justify-between p-6">
           <div>
             <h3 className="text-2xl font-black leading-tight text-slate-950 transition group-hover:text-cyan-700">
-              {post.title}
+              <HighlightedText text={post.title} query={highlightQuery} />
             </h3>
             <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
-              {post.excerpt}
+              <HighlightedText text={post.excerpt} query={highlightQuery} />
             </p>
           </div>
           <div className="mt-6 flex flex-wrap items-center justify-between gap-4">

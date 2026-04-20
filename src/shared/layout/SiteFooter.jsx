@@ -5,14 +5,20 @@ import { footerColumns } from "@/shared/config/siteNavigation";
 function FooterLink({ item }) {
   if (item.to) {
     return (
-      <Link to={item.to} className="transition hover:text-white">
+      <Link
+        to={item.to}
+        className="text-slate-400 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+      >
         {item.label}
       </Link>
     );
   }
 
   return (
-    <a href={item.href} className="transition hover:text-white">
+    <a
+      href={item.href}
+      className="text-slate-400 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+    >
       {item.label}
     </a>
   );

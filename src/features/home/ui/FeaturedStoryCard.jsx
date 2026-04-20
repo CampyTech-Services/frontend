@@ -6,9 +6,10 @@ import {
   Share2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { HighlightedText } from "./HighlightedText";
 import { formatArticleDate, formatViews } from "../utils/formatters";
 
-export function FeaturedStoryCard({ post }) {
+export function FeaturedStoryCard({ post, highlightQuery }) {
   if (!post) {
     return null;
   }
@@ -16,13 +17,13 @@ export function FeaturedStoryCard({ post }) {
   return (
     <article
       data-tutorial-id="featured-post"
-      className="overflow-hidden rounded-[2rem] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/70"
+      className="group animate-fade-up overflow-hidden rounded-[2rem] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/70"
     >
       <div className="relative h-[26rem] overflow-hidden sm:h-[32rem]">
         <img
           src={post.image}
           alt={post.title}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
           decoding="async"
           fetchPriority="high"
         />
@@ -37,7 +38,11 @@ export function FeaturedStoryCard({ post }) {
         </div>
         <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
           <h2 className="max-w-3xl text-3xl font-black leading-tight text-white sm:text-4xl">
-            {post.title}
+            <HighlightedText
+              text={post.title}
+              query={highlightQuery}
+              markClassName="bg-amber-300/85 text-slate-950"
+            />
           </h2>
           <div className="mt-4 flex flex-wrap items-center gap-4 text-sm font-medium text-white/85">
             <span className="inline-flex items-center gap-2">
@@ -55,12 +60,12 @@ export function FeaturedStoryCard({ post }) {
       </div>
       <div className="p-6 sm:p-8">
         <p className="max-w-3xl text-base leading-7 text-slate-600">
-          {post.excerpt}
+          <HighlightedText text={post.excerpt} query={highlightQuery} />
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <Link
             to={`/blog/${post.slug}`}
-            className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-5 py-3 text-sm font-semibold text-cyan-800 transition hover:border-cyan-300 hover:bg-cyan-100"
+            className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-5 py-3 text-sm font-semibold text-cyan-800 transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-cyan-100"
           >
             <span>Read Full Story</span>
             <ChevronRight className="h-4 w-4" />
