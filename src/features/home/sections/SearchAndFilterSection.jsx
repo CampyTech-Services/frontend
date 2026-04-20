@@ -11,7 +11,8 @@ const previewToneClasses = {
   slate: "border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200",
   blue: "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100",
   cyan: "border-cyan-200 bg-cyan-50 text-cyan-700 hover:bg-cyan-100",
-  emerald: "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+  emerald:
+    "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
   amber: "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100",
   rose: "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100",
   indigo: "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100",
@@ -93,9 +94,7 @@ export function SearchAndFilterSection({
                     Open Search Modal
                   </span>
                   <p className="mt-1 truncate text-base text-slate-900 sm:text-lg">
-                    {searchTerm
-                      ? searchTerm
-                      : 'Search "admission list", "scholarship", or "JAMB update"'}
+                    {searchTerm ? searchTerm : " "}
                   </p>
                 </div>
                 <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white">
@@ -213,7 +212,8 @@ export function SearchAndFilterSection({
                     type="button"
                     onClick={() => onClearFilter(filter.id)}
                     className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                      previewToneClasses[filter.tone] ?? previewToneClasses.slate
+                      previewToneClasses[filter.tone] ??
+                      previewToneClasses.slate
                     }`}
                   >
                     <span>{filter.label}</span>

@@ -331,7 +331,7 @@ export function NewsSearchModal({
                       type="text"
                       value={searchTerm}
                       onChange={onSearchChange}
-                      placeholder='Search "admission list", "scholarship", or "JAMB update"'
+                      placeholder=''
                       className="mt-1 w-full border-none bg-transparent p-0 text-base text-slate-900 outline-none placeholder:text-slate-400 sm:text-lg"
                     />
                   </div>
