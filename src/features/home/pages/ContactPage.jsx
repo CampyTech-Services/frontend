@@ -26,7 +26,7 @@ export function ContactPage() {
               General enquiries
             </p>
             <p className="mt-5 text-base leading-7 text-slate-200">
-              hello@campytechgist.com
+              campytechltd@gmail.com
             </p>
             <p className="mt-6 text-sm leading-7 text-slate-400">
               Expect quick replies for admissions, scholarship, and student news
@@ -39,7 +39,7 @@ export function ContactPage() {
               Phone & location
             </p>
             <p className="mt-5 text-base leading-7 text-slate-700">
-              +234 701 234 5678
+              +234 904 992 9850
             </p>
             <p className="mt-6 text-sm leading-7 text-slate-500">
               Abuja, Nigeria — providing student news coverage across the
@@ -55,19 +55,19 @@ export function ContactPage() {
           <div className="mt-6 space-y-6 text-sm leading-7 text-slate-600">
             <div>
               <p className="font-semibold text-slate-900">Press and media</p>
-              <p>press@campytechgist.com</p>
+              <p>campytechltd@gmail.com</p>
             </div>
             <div>
               <p className="font-semibold text-slate-900">
                 Advertising and partnerships
               </p>
-              <p>partnerships@campytechgist.com</p>
+              <p>campytechltd@gmail.com</p>
             </div>
             <div>
               <p className="font-semibold text-slate-900">
                 Editorial submissions
               </p>
-              <p>news@campytechgist.com</p>
+              <p>campytechltd@gmail.com</p>
             </div>
           </div>
         </section>
