@@ -3,10 +3,13 @@ import logo from "@/assets/logo2.jpeg";
 import { footerColumns } from "@/shared/config/siteNavigation";
 
 function FooterLink({ item }) {
-  if (item.to) {
+  const internalLink =
+    item.to ?? (item.href?.startsWith("/") ? item.href : undefined);
+
+  if (internalLink) {
     return (
       <Link
-        to={item.to}
+        to={internalLink}
         className="text-slate-400 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
       >
         {item.label}
@@ -42,6 +45,12 @@ export function SiteFooter() {
               Nigeria&apos;s trusted source for campus news, admission updates,
               scholarship opportunities, and student guidance.
             </p>
+            <Link
+              to="/services"
+              className="mt-6 inline-flex rounded-full bg-cyan-500 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400"
+            >
+              Explore Services
+            </Link>
           </div>
 
           {footerColumns.map((column) => (

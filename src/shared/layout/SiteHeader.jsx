@@ -47,13 +47,11 @@ export function SiteHeader() {
           </div>
           <nav className="hidden items-center gap-5 md:flex">
             {utilityLinks.map((item) => (
-              <a
+              <HeaderNavigationLink
                 key={item.label}
-                href={item.href}
+                item={item}
                 className="font-medium text-cyan-50 transition hover:text-white"
-              >
-                {item.label}
-              </a>
+              />
             ))}
           </nav>
         </div>

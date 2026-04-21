@@ -9,10 +9,14 @@ import { FeedStatusBanner } from "../ui/FeedStatusBanner";
 import { HomeTutorialOverlay } from "../ui/HomeTutorialOverlay";
 import { NewsSearchModal } from "../ui/NewsSearchModal";
 import { useDocumentTitle } from "@/shared/hooks/useDocumentTitle";
+import { getNewsletterPreferences } from "@/shared/utils/newsletterPreferences";
 
 export function HomePage() {
   useDocumentTitle("CampyTech Gist | Education News and Opportunities");
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const savedNewsletterPreferences = useState(() =>
+    getNewsletterPreferences(),
+  )[0];
   const { posts, categories, loading, error, usingFallbackData } =
     useHomeFeedData();
   const {
@@ -65,6 +69,8 @@ export function HomePage() {
   } = useBlogFilters({
     posts,
     categories,
+    initialCategory: savedNewsletterPreferences.categoryId,
+    initialSchool: savedNewsletterPreferences.school,
   });
 
   function openSearchModal() {

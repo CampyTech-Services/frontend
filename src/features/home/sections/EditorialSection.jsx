@@ -13,7 +13,9 @@ export function EditorialSection({
   categories,
   onCategoryChange,
 }) {
-  const sidebarCategories = categories.filter((category) => category.id !== "all");
+  const sidebarCategories = categories.filter(
+    (category) => category.id !== "all",
+  );
   const hasStories = Boolean(featuredPost || posts.length);
 
   return (
@@ -65,7 +67,7 @@ export function EditorialSection({
               categories={sidebarCategories}
               onCategoryChange={onCategoryChange}
             />
-            <NewsletterPanel />
+            <NewsletterPanel categories={sidebarCategories} />
             <SocialLinksPanel />
           </aside>
         </div>

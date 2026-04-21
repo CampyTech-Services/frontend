@@ -96,6 +96,27 @@ function matchesReadTime(post, readTimeId) {
   return minMatches && maxMatches;
 }
 
+function matchesSchoolPreference(post, school) {
+  if (!school) {
+    return true;
+  }
+
+  const normalizedSchool = school.trim().toLowerCase();
+  const searchablePostText = [
+    post.title,
+    post.excerpt,
+    post.author,
+    post.category,
+    post.categoryLabel,
+    post.contentText,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return searchablePostText.includes(normalizedSchool);
+}
+
 function compareByPublishedDate(left, right) {
   return (
     createLocalDate(right.publishedAt).getTime() -
@@ -137,26 +158,43 @@ function buildReferenceDate(posts) {
     : new Date();
 }
 
-export function useBlogFilters({ posts, categories }) {
-  const [selectedCategory, setSelectedCategory] = useState("all");
+export function useBlogFilters({
+  posts,
+  categories,
+  initialCategory = "all",
+  initialSearchTerm = "",
+  initialSchool = "",
+}) {
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedPeriod, setSelectedPeriod] = useState("all");
   const [selectedReadTime, setSelectedReadTime] = useState("any");
   const [sortBy, setSortBy] = useState("latest");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+  const [preferredSchool] = useState(initialSchool.trim().toLowerCase());
   const [isPending, startTransition] = useTransition();
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
   const deferredSearchTerm = useDeferredValue(normalizedSearchTerm);
   const referenceDate = useMemo(() => buildReferenceDate(posts), [posts]);
+
+  const normalizedPreferredSchool = preferredSchool.trim().toLowerCase();
 
   const baseFilteredPosts = useMemo(() => {
     return posts.filter((post) => {
       return (
         matchesSearch(post, deferredSearchTerm) &&
         matchesPeriod(post, selectedPeriod, referenceDate) &&
-        matchesReadTime(post, selectedReadTime)
+        matchesReadTime(post, selectedReadTime) &&
+        matchesSchoolPreference(post, normalizedPreferredSchool)
       );
     });
-  }, [deferredSearchTerm, posts, referenceDate, selectedPeriod, selectedReadTime]);
+  }, [
+    deferredSearchTerm,
+    normalizedPreferredSchool,
+    posts,
+    referenceDate,
+    selectedPeriod,
+    selectedReadTime,
+  ]);
 
   const categoryOptions = useMemo(() => {
     return categories.map((category) => ({
@@ -164,17 +202,26 @@ export function useBlogFilters({ posts, categories }) {
       count:
         category.id === "all"
           ? baseFilteredPosts.length
-          : baseFilteredPosts.filter((post) => post.category === category.id).length,
+          : baseFilteredPosts.filter((post) => post.category === category.id)
+              .length,
     }));
   }, [baseFilteredPosts, categories]);
 
   const filteredPosts = useMemo(() => {
-    const categoryMatches = baseFilteredPosts.filter((post) => {
-      return selectedCategory === "all" || post.category === selectedCategory;
-    });
+    if (selectedCategory === "all") {
+      return sortPosts(baseFilteredPosts, sortBy);
+    }
 
-    return sortPosts(categoryMatches, sortBy);
-  }, [baseFilteredPosts, selectedCategory, sortBy]);
+    return sortPosts(
+      baseFilteredPosts.filter((post) => {
+        return (
+          post.category === selectedCategory ||
+          matchesSchoolPreference(post, normalizedPreferredSchool)
+        );
+      }),
+      sortBy,
+    );
+  }, [baseFilteredPosts, normalizedPreferredSchool, selectedCategory, sortBy]);
 
   const latestPosts = useMemo(() => sortPosts(posts, "latest"), [posts]);
 
@@ -204,6 +251,7 @@ export function useBlogFilters({ posts, categories }) {
 
   const hasRefinedView =
     Boolean(normalizedSearchTerm) ||
+    Boolean(normalizedPreferredSchool) ||
     selectedCategory !== "all" ||
     selectedPeriod !== "all" ||
     selectedReadTime !== "any" ||
@@ -226,7 +274,11 @@ export function useBlogFilters({ posts, categories }) {
   }, [featuredPost, latestPosts]);
 
   const breakingPosts = useMemo(
-    () => sortPosts(posts.filter((post) => post.breaking), "latest").slice(0, 6),
+    () =>
+      sortPosts(
+        posts.filter((post) => post.breaking),
+        "latest",
+      ).slice(0, 6),
     [posts],
   );
 
@@ -250,6 +302,14 @@ export function useBlogFilters({ posts, categories }) {
         id: "category",
         label: activeCategory.name,
         tone: activeCategory.tone ?? "slate",
+      });
+    }
+
+    if (normalizedPreferredSchool) {
+      filters.push({
+        id: "school",
+        label: `School: ${preferredSchool}`,
+        tone: "emerald",
       });
     }
 

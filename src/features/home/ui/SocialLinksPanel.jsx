@@ -11,9 +11,11 @@ export function SocialLinksPanel() {
       </p>
       <div className="mt-5 grid grid-cols-2 gap-3">
         {socialLinks.map((link) => (
-          <button
+          <a
             key={link.id}
-            type="button"
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
             className={`group rounded-[1.5rem] border p-4 text-left transition hover:-translate-y-1 hover:shadow-[0_14px_30px_rgba(15,23,42,0.08)] ${link.surfaceClassName}`}
             aria-label={`Follow CampyTech Gist on ${link.label}`}
           >
@@ -31,7 +33,7 @@ export function SocialLinksPanel() {
               </div>
               <ArrowUpRight className="mt-0.5 h-4 w-4 text-slate-400 transition group-hover:text-slate-700" />
             </div>
-          </button>
+          </a>
         ))}
       </div>
     </section>

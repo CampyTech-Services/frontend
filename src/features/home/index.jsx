@@ -2,3 +2,8 @@ export { HomePage } from "./pages/HomePage";
 export { BlogDetailPage } from "./pages/BlogDetailPage";
 export { NotFoundPage } from "./pages/NotFoundPage";
 export { ServicesPage } from "./pages/ServicesPage";
+export { AboutPage } from "./pages/AboutPage";
+export { ContactPage } from "./pages/ContactPage";
+export { AdvertisePage } from "./pages/AdvertisePage";
+export { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
+export { TermsPage } from "./pages/TermsPage";
