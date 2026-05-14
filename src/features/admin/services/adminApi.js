@@ -23,6 +23,51 @@ export async function loginAdmin(credentials) {
   return response.data;
 }
 
+export async function getCurrentAdmin(token) {
+  const response = await apiClient.get("/admin/me", withToken(token));
+  return response.data;
+}
+
+export async function getAdminUsers(token) {
+  const response = await apiClient.get(
+    "/admin",
+    withToken(token, { params: defaultCollectionParams }),
+  );
+  return normalizeAdminCollection(response.data);
+}
+
+export async function createAdminUser(token, payload) {
+  const response = await apiClient.post("/admin", payload, withToken(token));
+  return response.data;
+}
+
+export async function updateAdminUser(token, adminId, payload) {
+  const response = await apiClient.put(
+    `/admin/${adminId}`,
+    payload,
+    withToken(token),
+  );
+  return response.data;
+}
+
+export async function updateAdminUserStatus(token, adminId, isActive) {
+  const response = await apiClient.put(
+    `/admin/${adminId}/status`,
+    { isActive },
+    withToken(token),
+  );
+  return response.data;
+}
+
+export async function updateAdminUserVerification(token, adminId, isVerified) {
+  const response = await apiClient.put(
+    `/admin/${adminId}/verify`,
+    { isVerified },
+    withToken(token),
+  );
+  return response.data;
+}
+
 export async function getAdminBlogs(token) {
   const response = await apiClient.get(
     "/admin/blog/all",
@@ -45,6 +90,114 @@ export async function getAdminTags(token) {
     withToken(token, { params: defaultCollectionParams }),
   );
   return normalizeAdminCollection(response.data);
+}
+
+export async function getFinanceEntries(token) {
+  const response = await apiClient.get(
+    "/admin/finance",
+    withToken(token, { params: { page: 1, limit: ADMIN_COLLECTION_LIMIT } }),
+  );
+  return normalizeAdminCollection(response.data);
+}
+
+export async function getFinanceSummary(token) {
+  const response = await apiClient.get("/admin/finance/summary", withToken(token));
+  return response.data;
+}
+
+export async function getFeedbackItems(token) {
+  const response = await apiClient.get(
+    "/admin/feedback",
+    withToken(token, { params: { page: 1, limit: ADMIN_COLLECTION_LIMIT } }),
+  );
+  return normalizeAdminCollection(response.data);
+}
+
+export async function getFeedbackSummary(token) {
+  const response = await apiClient.get("/admin/feedback/summary", withToken(token));
+  return response.data;
+}
+
+export async function updateFeedbackItem(token, feedbackId, payload) {
+  const response = await apiClient.put(
+    `/admin/feedback/${feedbackId}`,
+    payload,
+    withToken(token),
+  );
+  return response.data;
+}
+
+export async function deleteFeedbackItem(token, feedbackId) {
+  const response = await apiClient.delete(
+    `/admin/feedback/${feedbackId}`,
+    withToken(token),
+  );
+  return response.data;
+}
+
+export async function getAdminCourses(token) {
+  const response = await apiClient.get(
+    "/admin/courses",
+    withToken(token, { params: { page: 1, limit: ADMIN_COLLECTION_LIMIT } }),
+  );
+  return normalizeAdminCollection(response.data);
+}
+
+export async function saveAdminCourse(token, payload, courseId) {
+  if (courseId) {
+    const response = await apiClient.put(
+      `/admin/courses/${courseId}`,
+      payload,
+      withToken(token),
+    );
+    return response.data;
+  }
+
+  const response = await apiClient.post("/admin/courses", payload, withToken(token));
+  return response.data;
+}
+
+export async function deleteAdminCourse(token, courseId) {
+  const response = await apiClient.delete(
+    `/admin/courses/${courseId}`,
+    withToken(token),
+  );
+  return response.data;
+}
+
+export async function saveFinanceEntry(token, payload, financeEntryId) {
+  if (financeEntryId) {
+    const response = await apiClient.put(
+      `/admin/finance/${financeEntryId}`,
+      payload,
+      withToken(token),
+    );
+    return response.data;
+  }
+
+  const response = await apiClient.post(
+    "/admin/finance",
+    payload,
+    withToken(token),
+  );
+  return response.data;
+}
+
+export async function deleteFinanceEntry(token, financeEntryId) {
+  const response = await apiClient.delete(
+    `/admin/finance/${financeEntryId}`,
+    withToken(token),
+  );
+  return response.data;
+}
+
+export async function importCampusInfoDrafts(token, payload) {
+  const response = await apiClient.post(
+    "/admin/import/drafts",
+    payload,
+    withToken(token),
+  );
+  return response.data;
 }
 
 export async function saveAdminBlog(token, payload, blogId) {

@@ -19,14 +19,16 @@ export function NoticeBanner({ tone, message, onClose }) {
         )}
         <span>{message}</span>
       </div>
-      <button
-        type="button"
-        onClick={onClose}
-        className="rounded-full p-1 transition hover:bg-black/5"
-        aria-label="Dismiss notice"
-      >
-        <X className="h-4 w-4" />
-      </button>
+      {onClose ? (
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-full p-1 transition hover:bg-black/5"
+          aria-label="Dismiss notice"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      ) : null}
     </div>
   );
 }

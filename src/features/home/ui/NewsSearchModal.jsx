@@ -219,6 +219,8 @@ export function NewsSearchModal({
   resultCount,
   results,
   isPending,
+  isSearchingBackend,
+  searchError,
   categories,
   selectedCategory,
   selectedPeriod,
@@ -358,6 +360,11 @@ export function NewsSearchModal({
                 {isPending && (
                   <span className="rounded-full bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700">
                     Updating results...
+                  </span>
+                )}
+                {isSearchingBackend && (
+                  <span className="rounded-full bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-700">
+                    Backend search
                   </span>
                 )}
               </div>
@@ -511,6 +518,12 @@ export function NewsSearchModal({
                     <X className="h-3.5 w-3.5" />
                   </button>
                 ))}
+              </div>
+            )}
+
+            {searchError && (
+              <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+                Backend search is unavailable, so local matches are shown.
               </div>
             )}
 

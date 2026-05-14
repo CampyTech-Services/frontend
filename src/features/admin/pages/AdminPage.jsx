@@ -10,9 +10,14 @@ import { AdminOverviewHero } from "../components/AdminOverviewHero";
 import { BlogEditor } from "../components/BlogEditor";
 import { BlogsTable } from "../components/BlogsTable";
 import { CategoriesPanel } from "../components/CategoriesPanel";
+import { CampusInfoImporterPanel } from "../components/CampusInfoImporterPanel";
+import { CoursesPanel } from "../components/CoursesPanel";
+import { FeedbackPanel } from "../components/FeedbackPanel";
+import { FinancePanel } from "../components/FinancePanel";
 import { NoticeBanner } from "../components/NoticeBanner";
 import { StatsGrid } from "../components/StatsGrid";
 import { TagsPanel } from "../components/TagsPanel";
+import { TeamManagementPanel } from "../components/TeamManagementPanel";
 import { useAdminPanel } from "../hooks/useAdminPanel";
 
 function LoadingScreen() {
@@ -40,21 +45,37 @@ export function AdminPage() {
     isLoggedIn,
     currentView,
     showPassword,
+    isSuperAdmin,
+    canManageBlogs,
     loginData,
     blogForm,
     categoryForm,
     tagForm,
+    teamForm,
+    financeForm,
+    importForm,
+    courseForm,
     blogs,
     blogItems,
     categories,
     tags,
+    teamMembers,
+    financeEntries,
+    financeSummary,
+    feedbackItems,
+    feedbackSummary,
+    courses,
     editingBlog,
     editingCategory,
     editingTag,
+    editingFinanceEntry,
+    editingCourse,
     loading,
     dashboardLoading,
     bootstrapping,
     uploadingImage,
+    uploadingReceipt,
+    importingDrafts,
     error,
     success,
     stats,
@@ -65,6 +86,10 @@ export function AdminPage() {
     setBlogForm,
     setCategoryForm,
     setTagForm,
+    setTeamForm,
+    setFinanceForm,
+    setImportForm,
+    setCourseForm,
     setCurrentView,
     setError,
     setSuccess,
@@ -72,6 +97,7 @@ export function AdminPage() {
     handleLogout,
     handleSaveBlog,
     handleBlogImageUpload,
+    handleFinanceReceiptUpload,
     handleDeleteBlog,
     handleEditBlog,
     handleSaveCategory,
@@ -80,10 +106,25 @@ export function AdminPage() {
     handleSaveTag,
     handleDeleteTag,
     handleEditTag,
+    handleCreateTeamMember,
+    handleUpdateTeamRole,
+    handleToggleTeamApproval,
+    handleToggleTeamStatus,
+    handleSaveFinanceEntry,
+    handleEditFinanceEntry,
+    handleDeleteFinanceEntry,
+    handleImportCampusInfo,
+    handleUpdateFeedback,
+    handleDeleteFeedback,
+    handleSaveCourse,
+    handleEditCourse,
+    handleDeleteCourse,
     openCreateView,
     resetForm,
     resetCategoryForm,
     resetTagForm,
+    resetFinanceForm,
+    resetCourseForm,
     refreshDashboard,
   } = useAdminPanel();
 
@@ -134,16 +175,22 @@ export function AdminPage() {
             <AdminTabs
               currentView={currentView}
               editingBlog={editingBlog}
+              isSuperAdmin={isSuperAdmin}
+              canManageBlogs={canManageBlogs}
               totals={{
                 blogs: blogs.total || blogItems.length,
                 categories: categories.total || categories.items.length,
                 tags: tags.total || tags.items.length,
+                team: teamMembers.total || teamMembers.items.length,
+                feedback: feedbackItems.total || feedbackItems.items.length,
+                courses: courses.total || courses.items.length,
               }}
               onOpenDashboard={() => {
                 setCurrentView(ADMIN_VIEWS.DASHBOARD);
                 resetForm();
                 resetCategoryForm();
                 resetTagForm();
+                resetCourseForm();
               }}
               onOpenEditor={openCreateView}
               onOpenCategories={() => {
@@ -154,7 +201,25 @@ export function AdminPage() {
                 setCurrentView(ADMIN_VIEWS.TAGS);
                 resetTagForm();
               }}
+              onOpenTeam={() => setCurrentView(ADMIN_VIEWS.TEAM)}
+              onOpenFinances={() => {
+                setCurrentView(ADMIN_VIEWS.FINANCES);
+                resetFinanceForm();
+              }}
+              onOpenImporter={() => setCurrentView(ADMIN_VIEWS.IMPORTER)}
+              onOpenFeedback={() => setCurrentView(ADMIN_VIEWS.FEEDBACK)}
+              onOpenCourses={() => {
+                setCurrentView(ADMIN_VIEWS.COURSES);
+                resetCourseForm();
+              }}
             />
+
+            {isLoggedIn && !canManageBlogs ? (
+              <NoticeBanner
+                tone="error"
+                message="Your admin account can view dashboard and feedback. Finance, blog publishing, course management, and import tools are super-admin only."
+              />
+            ) : null}
 
             {currentView === ADMIN_VIEWS.DASHBOARD ? (
               <div className="space-y-6">
@@ -163,6 +228,7 @@ export function AdminPage() {
                   categoriesTotal={categories.total || categories.items.length}
                   tagsTotal={tags.total || tags.items.length}
                   dashboardLoading={dashboardLoading}
+                  canManageBlogs={canManageBlogs}
                   onCreate={openCreateView}
                   onRefresh={refreshDashboard}
                   onOpenCategories={() => setCurrentView(ADMIN_VIEWS.CATEGORIES)}
@@ -172,6 +238,7 @@ export function AdminPage() {
                   blogs={blogs}
                   categories={categories}
                   dashboardLoading={dashboardLoading}
+                  canManageBlogs={canManageBlogs}
                   onRefresh={refreshDashboard}
                   onCreate={openCreateView}
                   onEdit={handleEditBlog}
@@ -180,7 +247,7 @@ export function AdminPage() {
               </div>
             ) : null}
 
-            {currentView === ADMIN_VIEWS.EDITOR ? (
+            {currentView === ADMIN_VIEWS.EDITOR && canManageBlogs ? (
               <BlogEditor
                 blogForm={blogForm}
                 categories={categories}
@@ -204,7 +271,7 @@ export function AdminPage() {
               />
             ) : null}
 
-            {currentView === ADMIN_VIEWS.CATEGORIES ? (
+            {currentView === ADMIN_VIEWS.CATEGORIES && canManageBlogs ? (
               <CategoriesPanel
                 categories={categories}
                 blogs={blogItems}
@@ -224,7 +291,7 @@ export function AdminPage() {
               />
             ) : null}
 
-            {currentView === ADMIN_VIEWS.TAGS ? (
+            {currentView === ADMIN_VIEWS.TAGS && canManageBlogs ? (
               <TagsPanel
                 tags={tags}
                 blogs={blogItems}
@@ -241,6 +308,91 @@ export function AdminPage() {
                 onEdit={handleEditTag}
                 onDelete={handleDeleteTag}
                 onReset={resetTagForm}
+              />
+            ) : null}
+
+            {currentView === ADMIN_VIEWS.FEEDBACK ? (
+              <FeedbackPanel
+                feedbackItems={feedbackItems}
+                feedbackSummary={feedbackSummary}
+                loading={loading}
+                onUpdate={handleUpdateFeedback}
+                onDelete={handleDeleteFeedback}
+              />
+            ) : null}
+
+            {currentView === ADMIN_VIEWS.TEAM && isSuperAdmin ? (
+              <TeamManagementPanel
+                teamMembers={teamMembers}
+                teamForm={teamForm}
+                loading={loading}
+                onFieldChange={(field, value) =>
+                  setTeamForm((previousState) => ({
+                    ...previousState,
+                    [field]: value,
+                  }))
+                }
+                onSubmit={handleCreateTeamMember}
+                onRoleChange={handleUpdateTeamRole}
+                onApprovalChange={handleToggleTeamApproval}
+                onStatusChange={handleToggleTeamStatus}
+              />
+            ) : null}
+
+            {currentView === ADMIN_VIEWS.FINANCES && isSuperAdmin ? (
+              <FinancePanel
+                financeSummary={financeSummary}
+                financeEntries={financeEntries}
+                financeForm={financeForm}
+                editingFinanceEntry={editingFinanceEntry}
+                loading={loading}
+                uploadingReceipt={uploadingReceipt}
+                canUploadReceipts={canUploadImages}
+                onFieldChange={(field, value) =>
+                  setFinanceForm((previousState) => ({
+                    ...previousState,
+                    [field]: value,
+                  }))
+                }
+                onReceiptUpload={handleFinanceReceiptUpload}
+                onSubmit={handleSaveFinanceEntry}
+                onEdit={handleEditFinanceEntry}
+                onDelete={handleDeleteFinanceEntry}
+                onReset={resetFinanceForm}
+              />
+            ) : null}
+
+            {currentView === ADMIN_VIEWS.COURSES && isSuperAdmin ? (
+              <CoursesPanel
+                courses={courses}
+                courseForm={courseForm}
+                editingCourse={editingCourse}
+                loading={loading}
+                onFieldChange={(field, value) =>
+                  setCourseForm((previousState) => ({
+                    ...previousState,
+                    [field]: value,
+                  }))
+                }
+                onSubmit={handleSaveCourse}
+                onEdit={handleEditCourse}
+                onDelete={handleDeleteCourse}
+                onReset={resetCourseForm}
+              />
+            ) : null}
+
+            {currentView === ADMIN_VIEWS.IMPORTER && isSuperAdmin ? (
+              <CampusInfoImporterPanel
+                categories={categories}
+                importForm={importForm}
+                importingDrafts={importingDrafts}
+                onFieldChange={(field, value) =>
+                  setImportForm((previousState) => ({
+                    ...previousState,
+                    [field]: value,
+                  }))
+                }
+                onSubmit={handleImportCampusInfo}
               />
             ) : null}
           </div>

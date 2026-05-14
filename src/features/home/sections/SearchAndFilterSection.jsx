@@ -40,6 +40,8 @@ export function SearchAndFilterSection({
   activeFilterCount,
   resultCount,
   isPending,
+  isSearchingBackend,
+  searchError,
   hasActiveFilters,
   selectedPeriodOption,
   selectedReadTimeOption,
@@ -51,13 +53,7 @@ export function SearchAndFilterSection({
   onResetFilters,
 }) {
   return (
-    <section className="relative isolate overflow-hidden border-b border-slate-200 bg-[linear-gradient(180deg,#ecfeff_0%,#f8fafc_42%,#ffffff_100%)]">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="animate-float-slow absolute left-[-3rem] top-10 h-36 w-36 rounded-full bg-cyan-300/25 blur-3xl" />
-        <div className="animate-float-delay absolute right-[-2rem] top-8 h-44 w-44 rounded-full bg-blue-300/20 blur-3xl" />
-        <div className="animate-float-slow absolute bottom-8 left-1/3 h-28 w-28 rounded-full bg-amber-200/25 blur-3xl" />
-      </div>
-
+    <section className="relative isolate overflow-hidden border-b border-slate-200 bg-[linear-gradient(180deg,#f0fdfa_0%,#f8fafc_46%,#ffffff_100%)]">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.75fr)]">
           <section
@@ -118,6 +114,18 @@ export function SearchAndFilterSection({
                   </button>
                 ))}
               </div>
+
+              {(isSearchingBackend || searchError) && (
+                <p
+                  className={`mt-4 text-sm font-semibold ${
+                    searchError ? "text-amber-700" : "text-cyan-700"
+                  }`}
+                >
+                  {searchError
+                    ? "Backend search is unavailable, showing local matches."
+                    : "Searching the backend for matching stories..."}
+                </p>
+              )}
             </div>
           </section>
 

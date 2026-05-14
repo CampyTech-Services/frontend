@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { tutorialSteps } from "../data/tutorialSteps";
 
 const TUTORIAL_STORAGE_KEY = "campytech_tutorial_completed";
+const AUTO_TUTORIAL_ENABLED =
+  import.meta.env.VITE_ENABLE_HOME_TUTORIAL === "true";
 
 export function useHomeTutorial({ ready }) {
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
 
   useEffect(() => {
-    if (!ready) {
+    if (!ready || !AUTO_TUTORIAL_ENABLED) {
       return;
     }
 

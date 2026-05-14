@@ -1,14 +1,31 @@
-import { FileText, FolderOpen, PenSquare, Tags } from "lucide-react";
+import {
+  BookOpenCheck,
+  DownloadCloud,
+  FileText,
+  FolderOpen,
+  Lightbulb,
+  PenSquare,
+  Tags,
+  Users,
+  WalletCards,
+} from "lucide-react";
 import { ADMIN_VIEWS } from "../constants";
 
 export function AdminTabs({
   currentView,
   editingBlog,
+  isSuperAdmin,
+  canManageBlogs,
   totals,
   onOpenDashboard,
   onOpenEditor,
   onOpenCategories,
   onOpenTags,
+  onOpenTeam,
+  onOpenFinances,
+  onOpenImporter,
+  onOpenFeedback,
+  onOpenCourses,
 }) {
   const tabs = [
     {
@@ -19,26 +36,69 @@ export function AdminTabs({
       onClick: onOpenDashboard,
     },
     {
-      id: ADMIN_VIEWS.EDITOR,
-      label: editingBlog ? "Edit Blog" : "Create Blog",
-      helper: editingBlog ? "Update current story" : "Write something new",
-      icon: PenSquare,
-      onClick: onOpenEditor,
+      id: ADMIN_VIEWS.FEEDBACK,
+      label: "Feedback",
+      helper: `${totals.feedback || 0} requests`,
+      icon: Lightbulb,
+      onClick: onOpenFeedback,
     },
-    {
-      id: ADMIN_VIEWS.CATEGORIES,
-      label: "Categories",
-      helper: `${totals.categories} groups`,
-      icon: FolderOpen,
-      onClick: onOpenCategories,
-    },
-    {
-      id: ADMIN_VIEWS.TAGS,
-      label: "Tags",
-      helper: `${totals.tags} labels`,
-      icon: Tags,
-      onClick: onOpenTags,
-    },
+    ...(canManageBlogs
+      ? [
+          {
+            id: ADMIN_VIEWS.EDITOR,
+            label: editingBlog ? "Edit Blog" : "Create Blog",
+            helper: editingBlog ? "Update current story" : "Write something new",
+            icon: PenSquare,
+            onClick: onOpenEditor,
+          },
+          {
+            id: ADMIN_VIEWS.CATEGORIES,
+            label: "Categories",
+            helper: `${totals.categories} groups`,
+            icon: FolderOpen,
+            onClick: onOpenCategories,
+          },
+          {
+            id: ADMIN_VIEWS.TAGS,
+            label: "Tags",
+            helper: `${totals.tags} labels`,
+            icon: Tags,
+            onClick: onOpenTags,
+          },
+        ]
+      : []),
+    ...(isSuperAdmin
+      ? [
+          {
+            id: ADMIN_VIEWS.TEAM,
+            label: "Team",
+            helper: `${totals.team || 0} members`,
+            icon: Users,
+            onClick: onOpenTeam,
+          },
+          {
+            id: ADMIN_VIEWS.FINANCES,
+            label: "Finances",
+            helper: "Ledger",
+            icon: WalletCards,
+            onClick: onOpenFinances,
+          },
+          {
+            id: ADMIN_VIEWS.COURSES,
+            label: "Courses",
+            helper: `${totals.courses || 0} courses`,
+            icon: BookOpenCheck,
+            onClick: onOpenCourses,
+          },
+          {
+            id: ADMIN_VIEWS.IMPORTER,
+            label: "Importer",
+            helper: "Draft scraper",
+            icon: DownloadCloud,
+            onClick: onOpenImporter,
+          },
+        ]
+      : []),
   ];
 
   return (

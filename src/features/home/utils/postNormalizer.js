@@ -81,9 +81,9 @@ function getReadTimeMinutes(text, providedValue) {
   return Math.max(2, Math.ceil(wordCount / 180));
 }
 
-function toDateString(value) {
+function toDateValue(value) {
   if (!value) {
-    return new Date().toISOString().slice(0, 10);
+    return new Date().toISOString();
   }
 
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -93,10 +93,10 @@ function toDateString(value) {
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return new Date().toISOString().slice(0, 10);
+    return new Date().toISOString();
   }
 
-  return date.toISOString().slice(0, 10);
+  return date.toISOString();
 }
 
 function getCategoryName(post) {
@@ -154,7 +154,7 @@ function normalizePost(post, index) {
     category: getCategoryId(post),
     categoryLabel,
     author: getAuthorName(post),
-    publishedAt: toDateString(post.publishedAt || post.createdAt),
+    publishedAt: toDateValue(post.publishedAt || post.createdAt),
     readTimeMinutes: getReadTimeMinutes(contentText, post.readTimeMinutes),
     views: getViews(post),
     image: post.featuredImage || post.image || getFallbackImage(index),
@@ -182,8 +182,6 @@ export function normalizeHomePosts(posts) {
 
     return rightDate - leftDate;
   });
-
-  console.log(sortedPosts);
 
   return sortedPosts.map((post, index) => normalizePost(post, index));
 }

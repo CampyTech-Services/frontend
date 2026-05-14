@@ -92,3 +92,51 @@ export const services = [
     ],
   },
 ];
+
+export const techCourses = [
+  {
+    id: "web-design-starter",
+    title: "Web Design Starter",
+    shortDescription:
+      "Learn HTML, CSS, responsive layouts, and the practical workflow for building clean student and business websites.",
+    price: 25000,
+    currency: "NGN",
+    level: "BEGINNER",
+    duration: "4 weeks",
+    outcomes: [
+      "Build responsive pages from scratch",
+      "Understand hosting and domain basics",
+      "Create a simple portfolio project",
+    ],
+  },
+  {
+    id: "frontend-react-foundation",
+    title: "Frontend With React",
+    shortDescription:
+      "Move from static pages into modern React interfaces with components, routing, API calls, and deploy-ready projects.",
+    price: 45000,
+    currency: "NGN",
+    level: "INTERMEDIATE",
+    duration: "6 weeks",
+    outcomes: [
+      "Build reusable React components",
+      "Connect frontend pages to APIs",
+      "Ship a student dashboard project",
+    ],
+  },
+  {
+    id: "data-analysis-foundation",
+    title: "Data Analysis Foundation",
+    shortDescription:
+      "Use spreadsheets, dashboards, and beginner analytics thinking to make sense of business and school data.",
+    price: 35000,
+    currency: "NGN",
+    level: "BEGINNER",
+    duration: "5 weeks",
+    outcomes: [
+      "Clean and organize datasets",
+      "Create useful spreadsheet dashboards",
+      "Present insights with confidence",
+    ],
+  },
+];

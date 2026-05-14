@@ -5,29 +5,56 @@ import {
   ADMIN_VIEWS,
   EMPTY_BLOG_FORM,
   EMPTY_CATEGORY_FORM,
+  EMPTY_COURSE_FORM,
+  EMPTY_FINANCE_FORM,
+  EMPTY_IMPORT_FORM,
   EMPTY_LOGIN_FORM,
   EMPTY_TAG_FORM,
+  EMPTY_TEAM_FORM,
 } from "../constants";
 import {
+  createAdminUser,
+  deleteAdminCourse,
+  deleteFeedbackItem,
+  deleteFinanceEntry,
   deleteAdminBlog,
   deleteAdminCategory,
   deleteAdminTag,
+  getAdminCourses,
   getAdminBlogs,
   getAdminCategories,
   getAdminTags,
+  getAdminUsers,
+  getCurrentAdmin,
+  getFeedbackItems,
+  getFeedbackSummary,
+  getFinanceEntries,
+  getFinanceSummary,
+  importCampusInfoDrafts,
   isAdminImageUploadConfigured,
   loginAdmin,
+  saveAdminCourse,
   saveAdminBlog,
   saveAdminCategory,
+  saveFinanceEntry,
   saveAdminTag,
+  updateFeedbackItem,
+  updateAdminUser,
+  updateAdminUserStatus,
+  updateAdminUserVerification,
   uploadAdminImage,
 } from "../services/adminApi";
 import {
   buildBlogPayload,
   buildCategoryPayload,
+  buildCoursePayload,
+  buildFinancePayload,
+  buildImportPayload,
   buildSlug,
+  buildTeamPayload,
   buildTagPayload,
   createEmptyCollectionState,
+  formatDateTimeLocal,
   formatEditorContent,
   getBlogTagIds,
   sortByLatest,
@@ -50,23 +77,40 @@ export function useAdminPanel() {
   const [authToken, setAuthToken] = useState(null);
   const [currentView, setCurrentView] = useState(ADMIN_VIEWS.LOGIN);
   const [showPassword, setShowPassword] = useState(false);
+  const [currentAdmin, setCurrentAdmin] = useState(null);
   const [loginData, setLoginData] = useState(EMPTY_LOGIN_FORM);
   const [blogForm, setBlogForm] = useState(EMPTY_BLOG_FORM);
   const [categoryForm, setCategoryForm] = useState(EMPTY_CATEGORY_FORM);
   const [tagForm, setTagForm] = useState(EMPTY_TAG_FORM);
+  const [teamForm, setTeamForm] = useState(EMPTY_TEAM_FORM);
+  const [financeForm, setFinanceForm] = useState(EMPTY_FINANCE_FORM);
+  const [importForm, setImportForm] = useState(EMPTY_IMPORT_FORM);
+  const [courseForm, setCourseForm] = useState(EMPTY_COURSE_FORM);
   const [blogs, setBlogs] = useState(createEmptyCollectionState);
   const [categories, setCategories] = useState(createEmptyCollectionState);
   const [tags, setTags] = useState(createEmptyCollectionState);
+  const [teamMembers, setTeamMembers] = useState(createEmptyCollectionState);
+  const [financeEntries, setFinanceEntries] = useState(createEmptyCollectionState);
+  const [financeSummary, setFinanceSummary] = useState(null);
+  const [feedbackItems, setFeedbackItems] = useState(createEmptyCollectionState);
+  const [feedbackSummary, setFeedbackSummary] = useState(null);
+  const [courses, setCourses] = useState(createEmptyCollectionState);
   const [editingBlog, setEditingBlog] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
   const [editingTag, setEditingTag] = useState(null);
+  const [editingFinanceEntry, setEditingFinanceEntry] = useState(null);
+  const [editingCourse, setEditingCourse] = useState(null);
   const [loading, setLoading] = useState(false);
   const [dashboardLoading, setDashboardLoading] = useState(false);
   const [bootstrapping, setBootstrapping] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [importingDrafts, setImportingDrafts] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const canUploadImages = isAdminImageUploadConfigured();
+  const isSuperAdmin = currentAdmin?.role === "SUPER_ADMIN";
+  const canManageBlogs = isSuperAdmin;
 
   useEffect(() => {
     const storedToken = window.localStorage.getItem(ADMIN_TOKEN_KEY);
@@ -78,11 +122,13 @@ export function useAdminPanel() {
 
     const restoreSession = async () => {
       setAuthToken(storedToken);
-      setIsLoggedIn(true);
-      setCurrentView(ADMIN_VIEWS.DASHBOARD);
 
       try {
-        await loadDashboardData(storedToken);
+        const adminProfile = await getCurrentAdmin(storedToken);
+        setCurrentAdmin(adminProfile);
+        setIsLoggedIn(true);
+        setCurrentView(ADMIN_VIEWS.DASHBOARD);
+        await loadDashboardData(storedToken, adminProfile);
       } catch (restoreError) {
         window.localStorage.removeItem(ADMIN_TOKEN_KEY);
         setAuthToken(null);
@@ -135,7 +181,18 @@ export function useAdminPanel() {
     }));
   }, [tagForm.name, editingTag]);
 
-  async function loadDashboardData(tokenOverride = authToken) {
+  useEffect(() => {
+    if (!courseForm.title || editingCourse) {
+      return;
+    }
+
+    setCourseForm((previousForm) => ({
+      ...previousForm,
+      slug: buildSlug(previousForm.title),
+    }));
+  }, [courseForm.title, editingCourse]);
+
+  async function loadDashboardData(tokenOverride = authToken, adminOverride = currentAdmin) {
     if (!tokenOverride) {
       return;
     }
@@ -143,15 +200,39 @@ export function useAdminPanel() {
     setDashboardLoading(true);
 
     try {
-      const [blogData, categoryData, tagData] = await Promise.all([
+      const adminForPermissions = adminOverride;
+      const [blogData, categoryData, tagData, feedbackData, feedbackStats] = await Promise.all([
         getAdminBlogs(tokenOverride),
         getAdminCategories(tokenOverride),
         getAdminTags(tokenOverride),
+        getFeedbackItems(tokenOverride),
+        getFeedbackSummary(tokenOverride),
       ]);
 
       setBlogs(blogData);
       setCategories(categoryData);
       setTags(tagData);
+      setFeedbackItems(feedbackData);
+      setFeedbackSummary(feedbackStats);
+
+      if (adminForPermissions?.role === "SUPER_ADMIN") {
+        const [teamData, financeData, summaryData, courseData] = await Promise.all([
+          getAdminUsers(tokenOverride),
+          getFinanceEntries(tokenOverride),
+          getFinanceSummary(tokenOverride),
+          getAdminCourses(tokenOverride),
+        ]);
+
+        setTeamMembers(teamData);
+        setFinanceEntries(financeData);
+        setFinanceSummary(summaryData);
+        setCourses(courseData);
+      } else {
+        setTeamMembers(createEmptyCollectionState());
+        setFinanceEntries(createEmptyCollectionState());
+        setFinanceSummary(null);
+        setCourses(createEmptyCollectionState());
+      }
     } finally {
       setDashboardLoading(false);
     }
@@ -171,13 +252,16 @@ export function useAdminPanel() {
         throw new Error("Login response did not include an access token.");
       }
 
+      const adminProfile = data.admin || (await getCurrentAdmin(accessToken));
+
       window.localStorage.setItem(ADMIN_TOKEN_KEY, accessToken);
       setAuthToken(accessToken);
+      setCurrentAdmin(adminProfile);
       setIsLoggedIn(true);
       setCurrentView(ADMIN_VIEWS.DASHBOARD);
       setLoginData(EMPTY_LOGIN_FORM);
       setSuccess("Login successful.");
-      await loadDashboardData(accessToken);
+      await loadDashboardData(accessToken, adminProfile);
     } catch (loginError) {
       setError(
         getErrorMessage(
@@ -194,24 +278,42 @@ export function useAdminPanel() {
   function handleLogout() {
     window.localStorage.removeItem(ADMIN_TOKEN_KEY);
     setAuthToken(null);
+    setCurrentAdmin(null);
     setIsLoggedIn(false);
     setCurrentView(ADMIN_VIEWS.LOGIN);
     setLoginData(EMPTY_LOGIN_FORM);
     setBlogForm(EMPTY_BLOG_FORM);
     setCategoryForm(EMPTY_CATEGORY_FORM);
     setTagForm(EMPTY_TAG_FORM);
+    setTeamForm(EMPTY_TEAM_FORM);
+    setFinanceForm(EMPTY_FINANCE_FORM);
+    setImportForm(EMPTY_IMPORT_FORM);
+    setCourseForm(EMPTY_COURSE_FORM);
     setBlogs(createEmptyCollectionState());
     setCategories(createEmptyCollectionState());
     setTags(createEmptyCollectionState());
+    setTeamMembers(createEmptyCollectionState());
+    setFinanceEntries(createEmptyCollectionState());
+    setFinanceSummary(null);
+    setFeedbackItems(createEmptyCollectionState());
+    setFeedbackSummary(null);
+    setCourses(createEmptyCollectionState());
     setEditingBlog(null);
     setEditingCategory(null);
     setEditingTag(null);
+    setEditingFinanceEntry(null);
+    setEditingCourse(null);
     setError("");
     setSuccess("");
   }
 
   async function handleSaveBlog(event) {
     event.preventDefault();
+    if (!canManageBlogs) {
+      setError("Only a super admin can save or publish blogs.");
+      return;
+    }
+
     setLoading(true);
     setError("");
     setSuccess("");
@@ -269,7 +371,46 @@ export function useAdminPanel() {
     }
   }
 
+  async function handleFinanceReceiptUpload(file) {
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image receipt.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Please choose a receipt image smaller than 5MB.");
+      return;
+    }
+
+    setUploadingReceipt(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const receiptUrl = await uploadAdminImage(file);
+      setFinanceForm((previousForm) => ({
+        ...previousForm,
+        receiptUrl,
+        receiptFileName: file.name,
+      }));
+      setSuccess("Receipt uploaded successfully.");
+    } catch (uploadError) {
+      setError(getErrorMessage(uploadError, "Failed to upload receipt."));
+    } finally {
+      setUploadingReceipt(false);
+    }
+  }
+
   async function handleDeleteBlog(blogId) {
+    if (!canManageBlogs) {
+      setError("Only a super admin can delete blogs.");
+      return;
+    }
+
     if (!window.confirm("Are you sure you want to delete this blog?")) {
       return;
     }
@@ -287,6 +428,11 @@ export function useAdminPanel() {
   }
 
   function handleEditBlog(blog) {
+    if (!canManageBlogs) {
+      setError("Only a super admin can edit or publish blogs.");
+      return;
+    }
+
     setEditingBlog(blog);
     setBlogForm({
       title: blog.title || "",
@@ -296,6 +442,7 @@ export function useAdminPanel() {
       excerpt: blog.excerpt || "",
       categoryId: blog.categoryId ? String(blog.categoryId) : "",
       status: blog.status || "DRAFT",
+      publishedAt: formatDateTimeLocal(blog.publishedAt),
       tags: getBlogTagIds(blog),
     });
     setCurrentView(ADMIN_VIEWS.EDITOR);
@@ -309,12 +456,22 @@ export function useAdminPanel() {
   }
 
   function openCreateView() {
+    if (!canManageBlogs) {
+      setError("Only a super admin can create or publish blogs.");
+      return;
+    }
+
     resetForm();
     setCurrentView(ADMIN_VIEWS.EDITOR);
   }
 
   async function handleSaveCategory(event) {
     event.preventDefault();
+    if (!isSuperAdmin) {
+      setError("Only a super admin can manage categories.");
+      return;
+    }
+
     setLoading(true);
     setError("");
     setSuccess("");
@@ -338,6 +495,11 @@ export function useAdminPanel() {
   }
 
   async function handleDeleteCategory(categoryId) {
+    if (!isSuperAdmin) {
+      setError("Only a super admin can delete categories.");
+      return;
+    }
+
     if (!window.confirm("Are you sure you want to delete this category?")) {
       return;
     }
@@ -360,6 +522,11 @@ export function useAdminPanel() {
   }
 
   function handleEditCategory(category) {
+    if (!isSuperAdmin) {
+      setError("Only a super admin can edit categories.");
+      return;
+    }
+
     setEditingCategory(category);
     setCategoryForm({
       name: category.name || "",
@@ -378,6 +545,11 @@ export function useAdminPanel() {
 
   async function handleSaveTag(event) {
     event.preventDefault();
+    if (!isSuperAdmin) {
+      setError("Only a super admin can manage tags.");
+      return;
+    }
+
     setLoading(true);
     setError("");
     setSuccess("");
@@ -399,6 +571,11 @@ export function useAdminPanel() {
   }
 
   async function handleDeleteTag(tagId) {
+    if (!isSuperAdmin) {
+      setError("Only a super admin can delete tags.");
+      return;
+    }
+
     if (!window.confirm("Are you sure you want to delete this tag?")) {
       return;
     }
@@ -421,6 +598,11 @@ export function useAdminPanel() {
   }
 
   function handleEditTag(tag) {
+    if (!isSuperAdmin) {
+      setError("Only a super admin can edit tags.");
+      return;
+    }
+
     setEditingTag(tag);
     setTagForm({
       name: tag.name || "",
@@ -434,6 +616,299 @@ export function useAdminPanel() {
   function resetTagForm() {
     setTagForm(EMPTY_TAG_FORM);
     setEditingTag(null);
+  }
+
+  async function handleCreateTeamMember(event) {
+    event.preventDefault();
+
+    if (!isSuperAdmin) {
+      setError("Only a super admin can create team members.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      await createAdminUser(authToken, buildTeamPayload(teamForm));
+      setTeamForm(EMPTY_TEAM_FORM);
+      setSuccess("Team member created. Approve the account before they can publish blogs.");
+      await loadDashboardData();
+    } catch (teamError) {
+      setError(getErrorMessage(teamError, "Failed to create team member."));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleUpdateTeamRole(adminId, role) {
+    if (!isSuperAdmin) {
+      setError("Only a super admin can update team roles.");
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+
+    try {
+      await updateAdminUser(authToken, adminId, { role });
+      setSuccess("Team role updated.");
+      await loadDashboardData();
+    } catch (teamError) {
+      setError(getErrorMessage(teamError, "Failed to update role."));
+    }
+  }
+
+  async function handleToggleTeamApproval(adminId, isVerified) {
+    if (!isSuperAdmin) {
+      setError("Only a super admin can approve team members.");
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+
+    try {
+      await updateAdminUserVerification(authToken, adminId, isVerified);
+      setSuccess(isVerified ? "Team member approved for blogging." : "Blog approval removed.");
+      await loadDashboardData();
+    } catch (teamError) {
+      setError(getErrorMessage(teamError, "Failed to update approval."));
+    }
+  }
+
+  async function handleToggleTeamStatus(adminId, isActive) {
+    if (!isSuperAdmin) {
+      setError("Only a super admin can update account status.");
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+
+    try {
+      await updateAdminUserStatus(authToken, adminId, isActive);
+      setSuccess(isActive ? "Team member activated." : "Team member deactivated.");
+      await loadDashboardData();
+    } catch (teamError) {
+      setError(getErrorMessage(teamError, "Failed to update account status."));
+    }
+  }
+
+  async function handleSaveFinanceEntry(event) {
+    event.preventDefault();
+
+    if (!isSuperAdmin) {
+      setError("Only a super admin can manage finances.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      await saveFinanceEntry(
+        authToken,
+        buildFinancePayload(financeForm),
+        editingFinanceEntry?.id,
+      );
+      setFinanceForm(EMPTY_FINANCE_FORM);
+      setEditingFinanceEntry(null);
+      setSuccess(editingFinanceEntry ? "Finance entry updated." : "Finance entry saved.");
+      await loadDashboardData();
+    } catch (financeError) {
+      setError(getErrorMessage(financeError, "Failed to save finance entry."));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleEditFinanceEntry(entry) {
+    setEditingFinanceEntry(entry);
+    setFinanceForm({
+      title: entry.title || "",
+      description: entry.description || "",
+      type: entry.type || "INCOME",
+      group: entry.group || "REVENUE",
+      amount: entry.amount ? String(entry.amount) : "",
+      category: entry.category || "",
+      startupName: entry.startupName || "",
+      counterparty: entry.counterparty || "",
+      reference: entry.reference || "",
+      receiptUrl: entry.receiptUrl || "",
+      receiptFileName: entry.receiptFileName || "",
+      status: entry.status || "CONFIRMED",
+      occurredAt: formatDateTimeLocal(entry.occurredAt),
+    });
+    setCurrentView(ADMIN_VIEWS.FINANCES);
+  }
+
+  async function handleDeleteFinanceEntry(entryId) {
+    if (!isSuperAdmin) {
+      setError("Only a super admin can delete finance entries.");
+      return;
+    }
+
+    if (!window.confirm("Delete this finance entry?")) {
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+
+    try {
+      await deleteFinanceEntry(authToken, entryId);
+      setSuccess("Finance entry deleted.");
+      await loadDashboardData();
+    } catch (financeError) {
+      setError(getErrorMessage(financeError, "Failed to delete finance entry."));
+    }
+  }
+
+  function resetFinanceForm() {
+    setFinanceForm(EMPTY_FINANCE_FORM);
+    setEditingFinanceEntry(null);
+  }
+
+  async function handleImportCampusInfo(event) {
+    event.preventDefault();
+
+    if (!isSuperAdmin) {
+      setError("Only a super admin can import external drafts.");
+      return;
+    }
+
+    setImportingDrafts(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const result = await importCampusInfoDrafts(
+        authToken,
+        buildImportPayload(importForm),
+      );
+      setSuccess(
+        `${result.sourceName || "Source"} import complete: ${result.imported || 0} draft(s), ${result.skipped || 0} skipped, ${result.failed || 0} failed.`,
+      );
+      await loadDashboardData();
+    } catch (importError) {
+      setError(getErrorMessage(importError, "Failed to import external drafts."));
+    } finally {
+      setImportingDrafts(false);
+    }
+  }
+
+  async function handleUpdateFeedback(feedbackId, payload) {
+    setError("");
+    setSuccess("");
+
+    try {
+      await updateFeedbackItem(authToken, feedbackId, payload);
+      setSuccess("Feedback updated.");
+      await loadDashboardData();
+    } catch (feedbackError) {
+      setError(getErrorMessage(feedbackError, "Failed to update feedback."));
+    }
+  }
+
+  async function handleDeleteFeedback(feedbackId) {
+    if (!window.confirm("Delete this feedback item?")) {
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+
+    try {
+      await deleteFeedbackItem(authToken, feedbackId);
+      setSuccess("Feedback deleted.");
+      await loadDashboardData();
+    } catch (feedbackError) {
+      setError(getErrorMessage(feedbackError, "Failed to delete feedback."));
+    }
+  }
+
+  async function handleSaveCourse(event) {
+    event.preventDefault();
+
+    if (!isSuperAdmin) {
+      setError("Only a super admin can manage courses.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      await saveAdminCourse(
+        authToken,
+        buildCoursePayload(courseForm),
+        editingCourse?.id,
+      );
+      resetCourseForm();
+      setSuccess(editingCourse ? "Course updated." : "Course saved.");
+      await loadDashboardData();
+    } catch (courseError) {
+      setError(getErrorMessage(courseError, "Failed to save course."));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleEditCourse(course) {
+    if (!isSuperAdmin) {
+      setError("Only a super admin can edit courses.");
+      return;
+    }
+
+    setEditingCourse(course);
+    setCourseForm({
+      title: course.title || "",
+      slug: course.slug || "",
+      shortDescription: course.shortDescription || "",
+      description: course.description || "",
+      price: course.price ? String(course.price) : "",
+      currency: course.currency || "NGN",
+      level: course.level || "BEGINNER",
+      duration: course.duration || "",
+      thumbnailUrl: course.thumbnailUrl || "",
+      outcomes: Array.isArray(course.outcomes) ? course.outcomes.join("\n") : "",
+      status: course.status || "DRAFT",
+      publishedAt: formatDateTimeLocal(course.publishedAt),
+    });
+    setCurrentView(ADMIN_VIEWS.COURSES);
+    setError("");
+    setSuccess("");
+  }
+
+  async function handleDeleteCourse(courseId) {
+    if (!isSuperAdmin) {
+      setError("Only a super admin can delete courses.");
+      return;
+    }
+
+    if (!window.confirm("Delete this course?")) {
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+
+    try {
+      await deleteAdminCourse(authToken, courseId);
+      setSuccess("Course deleted.");
+      await loadDashboardData();
+    } catch (courseError) {
+      setError(getErrorMessage(courseError, "Failed to delete course."));
+    }
+  }
+
+  function resetCourseForm() {
+    setCourseForm(EMPTY_COURSE_FORM);
+    setEditingCourse(null);
   }
 
   const blogItems = useMemo(() => sortByLatest(blogs.items), [blogs.items]);
@@ -482,23 +957,40 @@ export function useAdminPanel() {
   return {
     isLoggedIn,
     authToken,
+    currentAdmin,
     currentView,
     showPassword,
+    isSuperAdmin,
+    canManageBlogs,
     loginData,
     blogForm,
     categoryForm,
     tagForm,
+    teamForm,
+    financeForm,
+    importForm,
+    courseForm,
     blogs,
     blogItems,
     categories,
     tags,
+    teamMembers,
+    financeEntries,
+    financeSummary,
+    feedbackItems,
+    feedbackSummary,
+    courses,
     editingBlog,
     editingCategory,
     editingTag,
+    editingFinanceEntry,
+    editingCourse,
     loading,
     dashboardLoading,
     bootstrapping,
     uploadingImage,
+    uploadingReceipt,
+    importingDrafts,
     error,
     success,
     stats,
@@ -510,12 +1002,17 @@ export function useAdminPanel() {
     setBlogForm,
     setCategoryForm,
     setTagForm,
+    setTeamForm,
+    setFinanceForm,
+    setImportForm,
+    setCourseForm,
     setError,
     setSuccess,
     handleLogin,
     handleLogout,
     handleSaveBlog,
     handleBlogImageUpload,
+    handleFinanceReceiptUpload,
     handleDeleteBlog,
     handleEditBlog,
     handleSaveCategory,
@@ -524,10 +1021,25 @@ export function useAdminPanel() {
     handleSaveTag,
     handleDeleteTag,
     handleEditTag,
+    handleCreateTeamMember,
+    handleUpdateTeamRole,
+    handleToggleTeamApproval,
+    handleToggleTeamStatus,
+    handleSaveFinanceEntry,
+    handleEditFinanceEntry,
+    handleDeleteFinanceEntry,
+    handleImportCampusInfo,
+    handleUpdateFeedback,
+    handleDeleteFeedback,
+    handleSaveCourse,
+    handleEditCourse,
+    handleDeleteCourse,
     openCreateView,
     resetForm,
     resetCategoryForm,
     resetTagForm,
+    resetFinanceForm,
+    resetCourseForm,
     refreshDashboard: loadDashboardData,
   };
 }

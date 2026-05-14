@@ -38,6 +38,8 @@ export function normalizeAdminCollection(data) {
     data?.blogs,
     data?.categories,
     data?.tags,
+    data?.feedback,
+    data?.courses,
   ];
 
   for (const candidate of collectionCandidates) {
@@ -73,6 +75,9 @@ export function getBlogTagIds(blog) {
 
 export function buildBlogPayload(blogForm) {
   const excerpt = blogForm.excerpt.trim();
+  const publishedAt = blogForm.publishedAt
+    ? new Date(blogForm.publishedAt).toISOString()
+    : undefined;
 
   return {
     title: blogForm.title.trim(),
@@ -82,7 +87,78 @@ export function buildBlogPayload(blogForm) {
     excerpt: excerpt || undefined,
     categoryId: String(blogForm.categoryId).trim(),
     status: blogForm.status,
+    publishedAt,
     tagIds: blogForm.tags.map((tagId) => String(tagId)),
+  };
+}
+
+export function buildTeamPayload(teamForm) {
+  const payload = {
+    name: teamForm.name.trim(),
+    displayName: teamForm.displayName.trim(),
+    email: teamForm.email.trim(),
+    password: teamForm.password,
+    shortBio: teamForm.shortBio.trim() || undefined,
+    role: teamForm.role,
+    profilePicture: teamForm.profilePicture.trim() || undefined,
+  };
+
+  return payload;
+}
+
+export function buildFinancePayload(financeForm) {
+  const occurredAt = financeForm.occurredAt
+    ? new Date(financeForm.occurredAt).toISOString()
+    : undefined;
+
+  return {
+    title: financeForm.title.trim(),
+    description: financeForm.description.trim() || undefined,
+    type: financeForm.type,
+    group: financeForm.group,
+    amount: Number(financeForm.amount),
+    category: financeForm.category.trim() || undefined,
+    startupName: financeForm.startupName.trim() || undefined,
+    counterparty: financeForm.counterparty.trim() || undefined,
+    reference: financeForm.reference.trim() || undefined,
+    receiptUrl: financeForm.receiptUrl.trim() || undefined,
+    receiptFileName: financeForm.receiptFileName.trim() || undefined,
+    status: financeForm.status,
+    occurredAt,
+  };
+}
+
+export function buildImportPayload(importForm) {
+  return {
+    limit: Number(importForm.limit) || 10,
+    sourceKey: importForm.sourceKey || "SCHOLARSHIP_REGION",
+    categoryId: importForm.categoryId || undefined,
+    sourceUrl: importForm.sourceUrl.trim() || undefined,
+  };
+}
+
+export function buildCoursePayload(courseForm) {
+  const publishedAt = courseForm.publishedAt
+    ? new Date(courseForm.publishedAt).toISOString()
+    : undefined;
+  const outcomes = courseForm.outcomes
+    .split("\n")
+    .map((outcome) => outcome.trim())
+    .filter(Boolean);
+
+  return {
+    title: courseForm.title.trim(),
+    slug: buildSlug(courseForm.slug || courseForm.title),
+    shortDescription: courseForm.shortDescription.trim(),
+    description: courseForm.description.trim(),
+    price: Number(courseForm.price),
+    currency: courseForm.currency.trim() || "NGN",
+    level: courseForm.level,
+    duration: courseForm.duration.trim(),
+    thumbnailUrl: courseForm.thumbnailUrl.trim() || undefined,
+    outcomes,
+    status: courseForm.status,
+    publishedAt,
   };
 }
 
@@ -152,6 +228,31 @@ export function formatDate(value) {
     day: "numeric",
     year: "numeric",
   }).format(new Date(value));
+}
+
+export function formatDateTimeLocal(value) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const timezoneOffset = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - timezoneOffset).toISOString().slice(0, 16);
+}
+
+export function formatCurrency(value) {
+  const amount = Number(value) || 0;
+
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    maximumFractionDigits: 0,
+  }).format(amount);
 }
 
 export function formatRelativeDate(value) {

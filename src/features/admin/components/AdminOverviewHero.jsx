@@ -12,6 +12,7 @@ export function AdminOverviewHero({
   categoriesTotal,
   tagsTotal,
   dashboardLoading,
+  canManageBlogs,
   onCreate,
   onRefresh,
   onOpenCategories,
@@ -35,22 +36,26 @@ export function AdminOverviewHero({
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={onCreate}
-              className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-100"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Create Blog Post</span>
-            </button>
-            <button
-              type="button"
-              onClick={onOpenCategories}
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-            >
-              <FolderOpen className="h-4 w-4" />
-              <span>Manage Categories</span>
-            </button>
+            {canManageBlogs ? (
+              <>
+                <button
+                  type="button"
+                  onClick={onCreate}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-100"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Create Blog Post</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenCategories}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  <FolderOpen className="h-4 w-4" />
+                  <span>Manage Categories</span>
+                </button>
+              </>
+            ) : null}
             <button
               type="button"
               onClick={onRefresh}

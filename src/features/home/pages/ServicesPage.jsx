@@ -13,9 +13,11 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDocumentTitle } from "@/shared/hooks/useDocumentTitle";
-import { services } from "../data/services";
+import { services, techCourses } from "../data/services";
+import { getPublishedCourses } from "../services/homeApi";
 
 const serviceIcons = {
   graduation: GraduationCap,
@@ -53,6 +55,20 @@ const lightCtaClassName =
 
 const ghostCtaClassName =
   "inline-flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300";
+
+function formatCoursePrice(course) {
+  const amount = Number(course.price);
+
+  if (!Number.isFinite(amount)) {
+    return "Contact for pricing";
+  }
+
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: course.currency || "NGN",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
 
 function ServiceCard({ service }) {
   const Icon = serviceIcons[service.icon] || Sparkles;
@@ -139,6 +155,27 @@ function ServiceCard({ service }) {
 
 export function ServicesPage() {
   useDocumentTitle("CampyTech Gist | Student Services and Consultation");
+  const [courses, setCourses] = useState(techCourses);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    getPublishedCourses()
+      .then((publishedCourses) => {
+        if (isMounted && publishedCourses.length) {
+          setCourses(publishedCourses);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setCourses(techCourses);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const totalFeatures = services.reduce(
     (total, service) => total + service.features.length,
@@ -245,6 +282,67 @@ export function ServicesPage() {
         <div className="grid gap-7 lg:grid-cols-2 xl:grid-cols-3">
           {services.map((service) => (
             <ServiceCard key={service.id} service={service} />
+          ))}
+        </div>
+      </section>
+
+      <section
+        id="tech-courses"
+        className="mx-auto mt-10 max-w-7xl rounded-[2rem] bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/70 sm:p-8"
+      >
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.24em] text-cyan-700">
+              Tech Courses
+            </p>
+            <h2 className="mt-3 text-4xl font-black tracking-tight text-slate-950">
+              Practical tech training for students
+            </h2>
+          </div>
+          <a
+            href="mailto:campytechltd@gmail.com?subject=Course enrollment"
+            className={darkCtaClassName}
+          >
+            <span>Enroll by Email</span>
+            <ArrowRight className="h-4 w-4" />
+          </a>
+        </div>
+
+        <div className="mt-8 grid gap-6 lg:grid-cols-3">
+          {courses.map((course) => (
+            <article
+              key={course.id}
+              className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-cyan-700">
+                  {String(course.level || "BEGINNER").replace("_", " ")}
+                </span>
+                <span className="text-sm font-black text-slate-950">
+                  {formatCoursePrice(course)}
+                </span>
+              </div>
+              <h3 className="mt-5 text-2xl font-black text-slate-950">
+                {course.title}
+              </h3>
+              <p className="mt-3 text-sm leading-7 text-slate-600">
+                {course.shortDescription}
+              </p>
+              <p className="mt-4 text-sm font-semibold text-cyan-700">
+                {course.duration}
+              </p>
+              <ul className="mt-5 space-y-3">
+                {(course.outcomes || []).slice(0, 4).map((outcome) => (
+                  <li
+                    key={outcome}
+                    className="flex items-start gap-3 text-sm leading-6 text-slate-600"
+                  >
+                    <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-cyan-600" />
+                    <span>{outcome}</span>
+                  </li>
+                ))}
+              </ul>
+            </article>
           ))}
         </div>
       </section>

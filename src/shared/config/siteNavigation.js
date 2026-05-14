@@ -11,6 +11,7 @@ export const primaryNavigationItems = [
   { label: "Scholarships", href: "/#browse-categories" },
   { label: "JAMB", href: "/#browse-categories" },
   { label: "Services", to: "/services" },
+  { label: "Courses", href: "/services#tech-courses" },
 ];
 
 export const footerColumns = [
@@ -21,6 +22,7 @@ export const footerColumns = [
       { label: "Latest News", to: "/#latest-stories" },
       { label: "Admission Guide", to: "/#browse-categories" },
       { label: "Services", to: "/services" },
+      { label: "Tech Courses", to: "/services#tech-courses" },
     ],
   },
   {

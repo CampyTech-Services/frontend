@@ -46,10 +46,12 @@ export function HomePage() {
     featuredPost,
     listPosts,
     searchResults,
+    searchError,
     breakingPosts,
     trendingPosts,
     resultCount,
     isPending,
+    isSearchingBackend,
     hasActiveFilters,
     handleCategoryChange,
     handlePeriodChange,
@@ -116,6 +118,8 @@ export function HomePage() {
         activeFilterCount={activeFilterCount}
         resultCount={resultCount}
         isPending={isPending}
+        isSearchingBackend={isSearchingBackend}
+        searchError={searchError}
         hasActiveFilters={hasActiveFilters}
         selectedPeriodOption={selectedPeriodOption}
         selectedReadTimeOption={selectedReadTimeOption}
@@ -135,6 +139,8 @@ export function HomePage() {
         resultCount={resultCount}
         results={searchResults}
         isPending={isPending}
+        isSearchingBackend={isSearchingBackend}
+        searchError={searchError}
         categories={categoryOptions}
         selectedCategory={selectedCategory}
         selectedPeriod={selectedPeriod}

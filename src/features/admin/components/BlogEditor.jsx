@@ -115,6 +115,29 @@ function StatusField({ value, onChange }) {
   );
 }
 
+function PublishedAtField({ value, onChange }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-semibold text-slate-700">
+        Display Date and Time
+      </span>
+      <div className="relative">
+        <CalendarDays className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <input
+          type="datetime-local"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-11 py-3 text-base text-slate-900 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-100 sm:text-sm"
+        />
+      </div>
+      <p className="mt-2 text-xs leading-6 text-slate-500">
+        Leave empty to use the backend publish time, or pick a past date for
+        older stories.
+      </p>
+    </label>
+  );
+}
+
 function StatusIndicator({ status }) {
   const StatusIcon = statusIcon[status];
 
@@ -516,6 +539,10 @@ export function BlogEditor({
                 value={blogForm.status}
                 onChange={(value) => onFieldChange("status", value)}
               />
+              <PublishedAtField
+                value={blogForm.publishedAt}
+                onChange={(value) => onFieldChange("publishedAt", value)}
+              />
               <StatusIndicator status={blogForm.status} />
             </div>
           </section>
@@ -742,6 +769,11 @@ export function BlogEditor({
             <StatusField
               value={blogForm.status}
               onChange={(value) => onFieldChange("status", value)}
+            />
+
+            <PublishedAtField
+              value={blogForm.publishedAt}
+              onChange={(value) => onFieldChange("publishedAt", value)}
             />
 
             <StatusIndicator status={blogForm.status} />

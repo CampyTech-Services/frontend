@@ -1,4 +1,11 @@
-import { useDeferredValue, useMemo, useState, useTransition } from "react";
+import {
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react";
+import { searchHomepageBlogs } from "../services/homeApi";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
@@ -171,15 +178,73 @@ export function useBlogFilters({
   const [sortBy, setSortBy] = useState("latest");
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [preferredSchool] = useState(initialSchool.trim().toLowerCase());
+  const [backendSearchPosts, setBackendSearchPosts] = useState(null);
+  const [backendSearchLoading, setBackendSearchLoading] = useState(false);
+  const [backendSearchError, setBackendSearchError] = useState("");
   const [isPending, startTransition] = useTransition();
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
   const deferredSearchTerm = useDeferredValue(normalizedSearchTerm);
-  const referenceDate = useMemo(() => buildReferenceDate(posts), [posts]);
+  const shouldSearchBackend =
+    deferredSearchTerm.length >= 2 || selectedCategory !== "all";
+  const searchSourcePosts = backendSearchPosts ?? posts;
+  const referenceDate = useMemo(
+    () => buildReferenceDate(searchSourcePosts),
+    [searchSourcePosts],
+  );
 
   const normalizedPreferredSchool = preferredSchool.trim().toLowerCase();
 
+  useEffect(() => {
+    if (!shouldSearchBackend) {
+      setBackendSearchPosts(null);
+      setBackendSearchLoading(false);
+      setBackendSearchError("");
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      setBackendSearchLoading(true);
+      setBackendSearchError("");
+
+      try {
+        const searchPosts = await searchHomepageBlogs(
+          {
+            query: deferredSearchTerm,
+            categorySlug:
+              selectedCategory !== "all" ? selectedCategory : undefined,
+            limit: 100,
+          },
+          { signal: controller.signal },
+        );
+
+        if (!controller.signal.aborted) {
+          setBackendSearchPosts(searchPosts);
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setBackendSearchPosts(null);
+          setBackendSearchError(
+            error instanceof Error
+              ? error.message
+              : "Unable to search the backend.",
+          );
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setBackendSearchLoading(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [deferredSearchTerm, selectedCategory, shouldSearchBackend]);
+
   const baseFilteredPosts = useMemo(() => {
-    return posts.filter((post) => {
+    return searchSourcePosts.filter((post) => {
       return (
         matchesSearch(post, deferredSearchTerm) &&
         matchesPeriod(post, selectedPeriod, referenceDate) &&
@@ -190,8 +255,8 @@ export function useBlogFilters({
   }, [
     deferredSearchTerm,
     normalizedPreferredSchool,
-    posts,
     referenceDate,
+    searchSourcePosts,
     selectedPeriod,
     selectedReadTime,
   ]);
@@ -395,6 +460,8 @@ export function useBlogFilters({
     featuredPost,
     listPosts,
     searchResults: filteredPosts,
+    searchError: backendSearchError,
+    isSearchingBackend: backendSearchLoading,
     breakingPosts,
     trendingPosts,
     periodOptions: PERIOD_OPTIONS,
@@ -405,7 +472,8 @@ export function useBlogFilters({
     selectedSortOption,
     resultCount: filteredPosts.length,
     hasActiveFilters: hasRefinedView,
-    isPending: isPending || normalizedSearchTerm !== deferredSearchTerm,
+    isPending:
+      isPending || backendSearchLoading || normalizedSearchTerm !== deferredSearchTerm,
     handleCategoryChange: (categoryId) =>
       updateWithTransition(setSelectedCategory, categoryId),
     handlePeriodChange: (periodId) =>

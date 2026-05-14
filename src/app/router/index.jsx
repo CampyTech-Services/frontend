@@ -1,6 +1,6 @@
+import { lazy, Suspense } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import App from "@/App";
-import { AdminPage } from "@/features/admin";
 import {
   AboutPage,
   AdvertisePage,
@@ -12,6 +12,26 @@ import {
   ServicesPage,
   TermsPage,
 } from "@/features/home";
+
+const AdminPage = lazy(() =>
+  import("@/features/admin").then((module) => ({ default: module.AdminPage })),
+);
+
+function RouteLoader() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-sm font-semibold text-white">
+      Loading...
+    </div>
+  );
+}
+
+function LazyAdminPage() {
+  return (
+    <Suspense fallback={<RouteLoader />}>
+      <AdminPage />
+    </Suspense>
+  );
+}
 
 export const router = createBrowserRouter([
   {
@@ -58,6 +78,6 @@ export const router = createBrowserRouter([
   },
   {
     path: "/admin",
-    element: <AdminPage />,
+    element: <LazyAdminPage />,
   },
 ]);

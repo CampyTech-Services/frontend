@@ -30,6 +30,7 @@ export function BlogsTable({
   blogs,
   categories,
   dashboardLoading,
+  canManageBlogs,
   onRefresh,
   onCreate,
   onEdit,
@@ -98,14 +99,16 @@ export function BlogsTable({
             <RefreshCw className="h-4 w-4" />
             <span>{dashboardLoading ? "Refreshing..." : "Refresh"}</span>
           </button>
-          <button
-            type="button"
-            onClick={onCreate}
-            className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cyan-600"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Create New Blog Post</span>
-          </button>
+          {canManageBlogs ? (
+            <button
+              type="button"
+              onClick={onCreate}
+              className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cyan-600"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Create New Blog Post</span>
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -151,7 +154,7 @@ export function BlogsTable({
               <th className="px-6 py-4">Category</th>
               <th className="px-6 py-4">Status</th>
               <th className="px-6 py-4">Tags</th>
-              <th className="px-6 py-4">Updated</th>
+              <th className="px-6 py-4">Display Date</th>
               <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
@@ -213,7 +216,12 @@ export function BlogsTable({
                     {getBlogTagIds(blog).length === 1 ? "" : "s"}
                   </td>
                   <td className="px-6 py-5 text-sm text-slate-500">
-                    {formatDate(blog.updatedAt || blog.createdAt)}
+                    {formatDate(blog.publishedAt || blog.updatedAt || blog.createdAt)}
+                    {blog.sourceName ? (
+                      <span className="mt-1 block text-xs text-slate-400">
+                        Imported from {blog.sourceName}
+                      </span>
+                    ) : null}
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex items-center justify-end gap-2">
@@ -235,22 +243,26 @@ export function BlogsTable({
                           <ExternalLink className="h-4 w-4" />
                         </span>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => onEdit(blog)}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-blue-700 transition hover:bg-blue-50"
-                        aria-label={`Edit ${blog.title}`}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onDelete(blog.id)}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-red-700 transition hover:bg-red-50"
-                        aria-label={`Delete ${blog.title}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      {canManageBlogs ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => onEdit(blog)}
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-blue-700 transition hover:bg-blue-50"
+                            aria-label={`Edit ${blog.title}`}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onDelete(blog.id)}
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-red-700 transition hover:bg-red-50"
+                            aria-label={`Delete ${blog.title}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </>
+                      ) : null}
                     </div>
                   </td>
                 </tr>
