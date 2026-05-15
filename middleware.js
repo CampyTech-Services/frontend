@@ -16,7 +16,7 @@ export async function middleware(req) {
   const slug = pathname.replace('/blog/', '');
 
   try {
-    const res = await fetch(`https://api.campytech.com/blog/${slug}`);
+    const res = await fetch(`https://api.campytech.com/api/blog/slug/${slug}`);
     const post = await res.json();
 
     const html = `<!DOCTYPE html>
