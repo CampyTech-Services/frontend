@@ -1,22 +1,25 @@
-export async function middleware(req) {
+import { next } from "@vercel/edge";
+
+const BOTS = [
+  "whatsapp",
+  "facebookexternalhit",
+  "twitterbot",
+  "linkedinbot",
+  "telegrambot",
+  "googlebot",
+  "slackbot",
+];
+
+export default async function middleware(req) {
   const ua = req.headers.get("user-agent")?.toLowerCase() || "";
-
-  const isBot = [
-    "whatsapp",
-    "facebookexternalhit",
-    "twitterbot",
-    "linkedinbot",
-    "telegrambot",
-    "googlebot",
-    "slackbot",
-  ].some((bot) => ua.includes(bot));
-
-  if (!isBot) return;
-
   const url = new URL(req.url);
   const pathname = url.pathname;
 
-  if (!pathname.startsWith("/blog/")) return;
+  const isBot = BOTS.some((bot) => ua.includes(bot));
+
+  if (!isBot || !pathname.startsWith("/blog/")) {
+    return next();
+  }
 
   const slug = pathname.replace("/blog/", "");
 
@@ -42,8 +45,8 @@ export async function middleware(req) {
     return new Response(html, {
       headers: { "content-type": "text/html" },
     });
-  } catch {
-    return;
+  } catch (e) {
+    return next();
   }
 }
 
