@@ -4,7 +4,12 @@ import path from "path";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    legacy({
+      targets: ["defaults", "not IE 11"],
+    }),
+  ],
   server: {
     allowedHosts: ["frontend-et7k.onrender.com", ".onrender.com"],
   },
